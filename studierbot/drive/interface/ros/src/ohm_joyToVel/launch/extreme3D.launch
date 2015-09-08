@@ -1,0 +1,24 @@
+<launch>
+
+<node pkg="joy" name="joy_node" type="joy_node">
+    <param name="dev"              value="/dev/input/js0"   type="string"/>
+    <param name="autorepeat_rate"  value="12.0"/>
+  </node>
+
+  <node pkg="ohm_joyToVel" type="ohm_joyToVel_node" name="JoyToVel_Node" output="screen">
+    <param name="joy_topic"         		    value="joy"/>
+    <param name="twist_topic"                 value="vel/twist" />
+    <param name="joy_publisher_topic"         value="joy/action"/>
+    <param name="vel_publisher_topic"         value="vel/teleop"/>
+    <param name="cam_publisher_topic"         value="panTilt/teleop"/>
+    <param name="sensor_head"                 value="ohm_sensor_head_control"/>
+    <param name="driving_contour"             value="square"/>
+    <param name="change_namepsace"            value="change_namespace" />  
+    <param name="useVelocityPanTilt"          value="true" />
+    <param name="joystickUsed"                value="true" />
+    <param name="debug"                       value="false" />
+    <param name="loop_rate"                   value="30" />
+    <param name="v_lin_max"                   value="1.5" />     
+    <param name="v_ang_max"                   value="2.5" />
+  </node>
+</launch>
