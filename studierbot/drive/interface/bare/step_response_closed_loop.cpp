@@ -78,10 +78,10 @@ int main(int argc, char* argv[])
   double t_start = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
   short samples = 1500;
-  int wset = w * VALUESCALE;
+  short wset = w * VALUESCALE;
   for(short i=0; i<samples; i++)
   {
-    intTo4ByteArray(wset, &bufCmd[1]);
+    shortValuesTo4ByteArray(wset, 0, &bufCmd[1]);
 
     int sent = com->send(bufCmd, 6);
 

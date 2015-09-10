@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
   short samples = 1500;
   int umax = 100;
-  int u = atoi(argv[1]);
+  short u = atoi(argv[1]);
   for(short i=0; i<samples; i++)
   {
     // sine wave test
@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
     //int vmax  = 40;
     //u = sin(((double)i)/((double)imax)*M_PI*2.0)*vmax;
 
-    intTo4ByteArray(u, &cmd[1]);
+    shortValuesTo4ByteArray(u, 0, &cmd[1]);
 
     int sent = com->send(cmd, 6);
 
