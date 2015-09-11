@@ -25,9 +25,9 @@ int main(int argc, char* argv[])
     return 0;
   }
 
-  vector<float> vt;
-  vector<float> u;
-  vector<float> v;
+  vector<float> vTimestamp;
+  vector<float> vU;
+  vector<float> vV;
 
   float w = atof(argv[1]);
 
@@ -95,49 +95,53 @@ int main(int argc, char* argv[])
       ::gettimeofday(&clk, 0);
       double t_now = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
-      vt.push_back(t_now-t_start);
-      u.push_back(((float)wset)/VALUESCALE);
-      v.push_back(((float)rpm1)/VALUESCALE);
+      vTimestamp.push_back(t_now-t_start);
+      vU.push_back(((float)wset)/VALUESCALE);
+      vV.push_back(((float)rpm1)/VALUESCALE);
 
-      cout << (t_now-t_start) << " " << u.back() << " " << v.back() << endl;
+      //cout << (t_now-t_start) << " " << vU.back() << " " << vV.back() << endl;
     }
     else
       cout << "failed to receive" << endl;
   }
 
 
-  // Generate output files
-  std::ofstream outInput;
-  std::ofstream outOutput;
+  // Generate trace files
+  string filenameInput = "Eingang.sim";
+  string filenameOutput = "Ausgang.sim";
+  ofstream outInput;
+  ofstream outOutput;
 
-  std::ostringstream oss;
-  oss << "Eingang.sim";
+  ostringstream oss;
+  oss << filenameInput;
 
   outInput.open(oss.str().c_str(), std::ios::out);
 
-  std::ostringstream oss2;
-  oss2 << "Ausgang.sim";
+  ostringstream oss2;
+  oss2 << filenameOutput;
   outOutput.open(oss2.str().c_str(), std::ios::out);
+
   double t = 0.f;
-  double deltaT = ((vt[vt.size()-1] - vt[0])) / ((double)vt.size());
+
+  // Replace time stamp with accumulated mean value in order to have equal time distance of measurements
+  double deltaT = ((vTimestamp[vTimestamp.size()-1] - vTimestamp[0])) / ((double)vTimestamp.size());
 
   // Round seconds to 4 digits
-  int ndeltaT = deltaT * 10000;
+  int ndeltaT = (int)(deltaT * 10000.0 + 0.5);
   deltaT = ((double)ndeltaT) / 10000.0;
 
-  cout << "DeltaT: " << deltaT << " " << ndeltaT << endl;
-
-  // Write files
   outInput << "0 0" << endl;
   outOutput << "0 0" << endl;
-  for(int i=0; i<vt.size(); i++)
+  for(int i=0; i<vTimestamp.size(); i++)
   {
     t += deltaT;
-    outInput << t << " " << u[i] << endl;
-    outOutput << t << " " << v[i] << endl;
+    outInput << t << " " << vU[i] << endl;
+    outOutput << t << " " << vV[i] << endl;
   }
   outInput.close();
   outOutput.close();
+
+  cout << "files written to: " << filenameInput << " and " << filenameOutput << endl;
 
   delete com;
 }

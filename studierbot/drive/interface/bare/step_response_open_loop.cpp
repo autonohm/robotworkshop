@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <iomanip>
 
 #include "SerialPort.h"
 #include "protocol.h"
@@ -25,15 +26,15 @@ int main(int argc, char* argv[])
     return 0;
   }
  
-  vector<float> vt;
-  vector<float> vu;
-  vector<float> vv;
+  vector<float> vTimestamp;
+  vector<float> vU; // set value
+  vector<float> vV; // response
 
   SerialPort* com = new SerialPort(_comPort, _baud);
 
-  char cmd[6];
-  cmd[0] = 0x00;
-  cmd[5] = 'F';
+  char bufCmd[6];
+  bufCmd[0] = 0x00;
+  bufCmd[5] = 'F';
 
   short inc = 1;
   short val = 0;
@@ -52,9 +53,9 @@ int main(int argc, char* argv[])
     //int vmax  = 40;
     //u = sin(((double)i)/((double)imax)*M_PI*2.0)*vmax;
 
-    shortValuesTo4ByteArray(u, 0, &cmd[1]);
+    shortValuesTo4ByteArray(u, 0, &bufCmd[1]);
 
-    int sent = com->send(cmd, 6);
+    int sent = com->send(bufCmd, 6);
 
     char output[5];
     bool retval = com->receive(output, 5);
@@ -68,44 +69,53 @@ int main(int argc, char* argv[])
       ::gettimeofday(&clk, 0);
       double t_now = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
-      vt.push_back(t_now-t_start);
-      vu.push_back(u);
-      vv.push_back(((float)rpm1)/VALUESCALE);
+      vTimestamp.push_back(t_now-t_start);
+      vU.push_back(u);
+      vV.push_back(((float)rpm1)/VALUESCALE);
 
-      cout << (t_now-t_start) << " " << u << " " << vv.back() << endl;
+      //cout << (t_now-t_start) << " " << u << " " << vV.back() << endl;
     }
     else
       cout << "failed to receive" << endl;
   }
 
 
-  // Generate output files
-  std::ofstream outInput;
-  std::ofstream outOutput;
+  // Generate trace files
+  string filenameInput = "Eingang.sim";
+  string filenameOutput = "Ausgang.sim";
+  ofstream outInput;
+  ofstream outOutput;
 
-  std::ostringstream oss;
-  oss << "Eingang.sim";
+  ostringstream oss;
+  oss << filenameInput;
 
   outInput.open(oss.str().c_str(), std::ios::out);
 
-  std::ostringstream oss2;
-  oss2 << "Ausgang.sim";
+  ostringstream oss2;
+  oss2 << filenameOutput;
   outOutput.open(oss2.str().c_str(), std::ios::out);
+
   double t = 0.f;
-  double deltaT = ((vt[vt.size()-1] - vt[0])) / ((double)vt.size());
-  int ndeltaT = deltaT * 10000;
+
+  // Replace time stamp with accumulated mean value in order to have equal time distance of measurements
+  double deltaT = ((vTimestamp[vTimestamp.size()-1] - vTimestamp[0])) / ((double)vTimestamp.size());
+
+  // Round seconds to 4 digits
+  int ndeltaT = (int)(deltaT * 10000.0 + 0.5);
   deltaT = ((double)ndeltaT) / 10000.0;
-  cout << "DeltaT: " << deltaT << " " << ndeltaT << endl;
+
   outInput << "0 0" << endl;
   outOutput << "0 0" << endl;
-  for(int i=0; i<vt.size(); i++)
+  for(int i=0; i<vTimestamp.size(); i++)
   {
     t += deltaT;
-    outInput << t << " " << vu[i] << endl;
-    outOutput << t << " " << vv[i] << endl;
+    outInput << t << " " << vU[i] << endl;
+    outOutput << t << " " << vV[i] << endl;
   }
   outInput.close();
   outOutput.close();
+
+  cout << "files written to: " << filenameInput << " and " << filenameOutput << endl;
 
   delete com;
 }
