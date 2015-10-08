@@ -16,6 +16,27 @@ using namespace std;
 const char _comPort[] = "/dev/ttyACM0";
 const speed_t _baud = B115200;
 
+#define EULER 0
+
+SerialPort* _com;
+
+void sendToMotorshield(char cmd, float param, bool echo)
+{
+  char bufCmd[6];
+  char bufIn[5];
+  float check;
+
+  bufCmd[0] = cmd;
+  floatTo4ByteArray(param, &bufCmd[1]);
+  bufCmd[5] = 'F';
+  int sent = _com->send(bufCmd, 6);
+  bool retval = _com->receive(bufIn, 5);
+  check = byteArrayToFloat(bufIn);
+
+  if(echo)
+    cout << "Sent " << param << ", echo: " << check << endl;
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -31,43 +52,43 @@ int main(int argc, char* argv[])
 
   float w = atof(argv[1]);
 
-  SerialPort* com = new SerialPort(_comPort, _baud);
+  _com = new SerialPort(_comPort, _baud);
 
   char bufCmd[6];
   char bufIn[5];
   bool retval;
   int sent;
 
-  float kp = 1.0f;
-  float ki = 10.0f;
-  float kd = 0.0f;
-
-  int ikp = kp * PARAMSCALE;
-  int iki = ki * PARAMSCALE;
-  int ikd = kd * PARAMSCALE;
-  int check;
-
-  bufCmd[0] = 0x02;
-  intTo4ByteArray(ikp, &bufCmd[1]);
   bufCmd[5] = 'F';
-  sent = com->send(bufCmd, 6);
-  retval = com->receive(bufIn, 5);
-  check = byteArrayToInt(bufIn);
-  cout << "Sent Kp: " << ikp << ", echo: " << check << endl;
 
-  bufCmd[0] = 0x03;
-  intTo4ByteArray(iki, &bufCmd[1]);
-  sent = com->send(bufCmd, 6);
-  retval = com->receive(bufIn, 5);
-  check = byteArrayToInt(bufIn);
-  cout << "Sent Ki: " << iki << ", echo: " << check << endl;
+  if(EULER)
+  {
+    float A[9] = {0, 1, 0, 0, -1, 0, 0, 0, 0};
+    float b[3] = {0, 1, 0};
+    float c[3] = {0, 0, 0};
+    float d = 1.1f;
 
-  bufCmd[0] = 0x04;
-  intTo4ByteArray(ikd, &bufCmd[1]);
-  sent = com->send(bufCmd, 6);
-  retval = com->receive(bufIn, 5);
-  check = byteArrayToInt(bufIn);
-  cout << "Sent Kd: " << ikd << ", echo: " << check << endl;
+    for(int i=0; i<9; i++)
+      sendToMotorshield(0x05 + i, A[i], true);
+
+    for(int i=0; i<3; i++)
+      sendToMotorshield(0x0E + i, b[i], true);
+
+    for(int i=0; i<3; i++)
+      sendToMotorshield(0x11 + i, c[i], true);
+
+    sendToMotorshield(0x14, d, true);
+  }
+  else
+  {
+    float kp = 1.1f;
+    float ki = 0.0f;
+    float kd = 0.0f;
+
+    sendToMotorshield(0x02, kp, true);
+    sendToMotorshield(0x03, ki, true);
+    sendToMotorshield(0x04, kd, true);
+  }
 
   bufCmd[0] = 0x01;
 
@@ -83,9 +104,9 @@ int main(int argc, char* argv[])
   {
     shortValuesTo4ByteArray(wset, 0, &bufCmd[1]);
 
-    int sent = com->send(bufCmd, 6);
+    int sent = _com->send(bufCmd, 6);
 
-    bool retval = com->receive(bufIn, 5);
+    bool retval = _com->receive(bufIn, 5);
 
     if(retval & (bufIn[4]=='F'))
     {
@@ -143,5 +164,5 @@ int main(int argc, char* argv[])
 
   cout << "files written to: " << filenameInput << " and " << filenameOutput << endl;
 
-  delete com;
+  delete _com;
 }
