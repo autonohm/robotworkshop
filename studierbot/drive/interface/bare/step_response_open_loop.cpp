@@ -1,3 +1,9 @@
+/**
+ * @author Stefan May
+ * @date 10.10.2015
+ * @brief Step response recorder for open-loop interface of motor shield
+ */
+
 #include <iostream>
 #include <math.h>
 #include <sys/time.h>

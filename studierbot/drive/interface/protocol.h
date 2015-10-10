@@ -1,3 +1,9 @@
+/**
+ * @author Stefan May
+ * @date 10.10.2015
+ * @brief Protocol helper functions (conversion of data types to byte arrays)
+ */
+
 #define VALUESCALE 100.f
 
 inline void shortValuesTo4ByteArray(short val1, short val2, char array[])

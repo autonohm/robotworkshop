@@ -1,3 +1,9 @@
+/**
+ * @author Stefan May
+ * @date 10.10.2015
+ * @brief Step response recorder for closed-loop interface of motor shield
+ */
+
 #include <iostream>
 #include <math.h>
 #include <sys/time.h>
@@ -10,16 +16,26 @@
 
 #include "SerialPort.h"
 #include "protocol.h"
+#include "control.h"
 
 using namespace std;
 
 const char _comPort[] = "/dev/ttyACM0";
 const speed_t _baud = B115200;
 
-#define EULER 0
+/**
+ * Use of Euler method, instead of classic PID controller
+ */
+#define EULER 1
 
 SerialPort* _com;
 
+/**
+ * Send float commands to motor shield
+ * @param cmd command byte
+ * @param param float parameter
+ * @param echo verbosity of function, true provides command line output
+ */
 void sendToMotorshield(char cmd, float param, bool echo)
 {
   char bufCmd[6];
@@ -61,12 +77,25 @@ int main(int argc, char* argv[])
 
   bufCmd[5] = 'F';
 
+  float kp   = 5.1f;
+  float ki   = 50.0f;
+  float kd   = 0.06f;
+
+  // parasitic time constant of closed-loop controller implemented in motor shield
+  float tPar = 0.01;
   if(EULER)
   {
-    float A[9] = {0, 1, 0, 0, -1, 0, 0, 0, 0};
-    float b[3] = {0, 1, 0};
-    float c[3] = {0, 0, 0};
-    float d = 1.1f;
+    float aTf[4];
+    float bTf[4];
+
+    pidToTransferFunction(kp, ki, kd, tPar, bTf, aTf, true);
+
+    float A[9];
+    float b[3];
+    float c[3];
+    float d;
+
+    transferFunctionToStateControl(bTf, aTf, second, A, b, c, d, true);
 
     for(int i=0; i<9; i++)
       sendToMotorshield(0x05 + i, A[i], true);
@@ -81,10 +110,6 @@ int main(int argc, char* argv[])
   }
   else
   {
-    float kp = 1.1f;
-    float ki = 0.0f;
-    float kd = 0.0f;
-
     sendToMotorshield(0x02, kp, true);
     sendToMotorshield(0x03, ki, true);
     sendToMotorshield(0x04, kd, true);
