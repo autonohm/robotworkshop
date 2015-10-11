@@ -108,13 +108,23 @@ bool SerialPort::receive(char* msg, unsigned int len)
   ssize_t bytesRead = 0;
   ssize_t bytesToRead = len*sizeof(*msg);
   ssize_t bytesAvailable = 0;
-  while(bytesRead!=bytesToRead)
+  int cycles = 0;
+  int maxCycles = 1000;
+  while(bytesRead!=bytesToRead && cycles<maxCycles)
   {
     errno = 0;
     bytesAvailable = read(_fd, &(msg[bytesRead]), bytesToRead-bytesRead);
     bytesRead += bytesAvailable;
+    usleep(100);
+    cycles++;
     //std::cout << "available: " << bytesAvailable << " errno: " <<  errno << " read: " << bytesRead << " " << bytesToRead << std::endl;
   }
+
+  if(cycles>=maxCycles)
+  {
+    std::cout << "timeout while receiving data" << std::endl;
+  }
+
   if(bytesRead == bytesToRead)
   {
     //std::cout << "ok" << std::endl;
