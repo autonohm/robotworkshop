@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 
   char bufCmd[6];
   bufCmd[0] = 0x00;
-  bufCmd[5] = 'F';
+  bufCmd[5] = 'S';
 
   short inc = 1;
   short val = 0;
@@ -54,10 +54,7 @@ int main(int argc, char* argv[])
   short u = atoi(argv[1]);
   for(short i=0; i<samples; i++)
   {
-    // sine wave test
-    //int imax = 1000;
-    //int vmax  = 40;
-    //u = sin(((double)i)/((double)imax)*M_PI*2.0)*vmax;
+    if(i>0.9*samples) u = 0;
 
     shortValuesTo4ByteArray(u, 0, &bufCmd[1]);
 
@@ -66,7 +63,7 @@ int main(int argc, char* argv[])
     char output[5];
     bool retval = com->receive(output, 5);
 
-    if(retval & (output[4]=='F'))
+    if(retval & (output[4]=='S'))
     {
       short rpm1 = ((output[0] << 8) & 0xFF00) | (output[1]  & 0x00FF);
       short rpm2 = ((output[3] << 8) & 0xFF00) | (output[2]  & 0x00FF);

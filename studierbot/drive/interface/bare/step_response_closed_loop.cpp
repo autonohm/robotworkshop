@@ -116,6 +116,7 @@ int main(int argc, char* argv[])
   }
 
   bufCmd[0] = 0x01;
+  bufCmd[5] = 'S';
 
   short val = 0;
 
@@ -127,13 +128,16 @@ int main(int argc, char* argv[])
   short wset = w * VALUESCALE;
   for(short i=0; i<samples; i++)
   {
+
+    if(i>0.9*samples) wset = 0;
+
     shortValuesTo4ByteArray(wset, 0, &bufCmd[1]);
 
     int sent = _com->send(bufCmd, 6);
 
     bool retval = _com->receive(bufIn, 5);
 
-    if(retval & (bufIn[4]=='F'))
+    if(retval & (bufIn[4]=='S'))
     {
       short rpm1 = ((bufIn[0] << 8) & 0xFF00) | (bufIn[1]  & 0x00FF);
       short rpm2 = ((bufIn[3] << 8) & 0xFF00) | (bufIn[2]  & 0x00FF);
