@@ -1,0 +1,6 @@
+<launch>
+	<node name = "studierbot_rescue_node" pkg = "studierbot_rescue" type = "studierbot_rescue_node" output = "screen">
+		<param name = "lag_error" type = "double" value = "1.0"/>
+		<param name = "com_port" type = "string" value = "/dev/ttyACM0"/>		
+	</node>	
+</launch>
