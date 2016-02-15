@@ -1,0 +1,3 @@
+[submodule "tutorials/ros/ohm_tutorial"]
+	path = tutorials/ros/ohm_tutorial
+	url = git@github.com:ChrisPfiOhm/ohm_tutorial.git
