@@ -27,9 +27,10 @@ public:
    * Set direction of left motors (internally the encoders cannot determine this)
    * @param forward true=forward, false=backward
    */
-  void setForwardLeft(bool forward);
+/*  void setForwardLeft(bool forward);
 
   bool getForwardRight();
+	bool getForwardLeft();
 
   bool isStopped();
 
@@ -37,7 +38,7 @@ public:
    * Set direction of right motors (internally the encoders cannot determine this)
    * @param forward true=forward, false=backward
    */
-  void setForwardRight(bool forward);
+//  void setForwardRight(bool forward);
 
   /**
    * Get encoder ticks per revolution
@@ -76,6 +77,13 @@ private:
    */
   ros::Time _timestampRight;
 
+  long _ticksRightOld;
+	long _ticksLeftOld;
+
+
+  ros::Time _timestampStop;
+
+  long _ticksStopped;
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include <geometry_msgs/TwistStamped.h>
 
 #include "Motorcontroller.h"
+#include "Servocontroller.h"
 
 #include <iostream>
 
@@ -51,7 +52,7 @@ private:
    * ROS joystick callback
    * @param joy message with joystick command
    */
-  //void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
+  void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
 
   /**
    * ROS command velocity callback
@@ -60,10 +61,13 @@ private:
   void velocityCallback(const geometry_msgs::TwistStamped& cmd);
 
   ros::NodeHandle _nh;
-  //ros::Subscriber _joySub;
+  ros::Subscriber _joySub;
   ros::Subscriber _velSub;
 
   Motorcontroller _motor;
+  Servocontroller _servo;
+
+  double _vl, _vr;
 
   // maximum velocity [m/s]
   double _vMax;

@@ -20,7 +20,7 @@ Motorcontroller::Motorcontroller()
 	_maxCmd = CMDMAX;
 	_minCmd = -CMDMAX;
 
-  struct termios options;
+	struct termios options;
   _tty_fd=open("/dev/ttyAMA0", O_RDWR | O_NONBLOCK | O_NOCTTY | O_NDELAY);
 
   usleep(1000);
@@ -34,7 +34,7 @@ Motorcontroller::Motorcontroller()
 
 Motorcontroller::~Motorcontroller()
 {
-  stop();
+	stop();
 }
 
 int Motorcontroller::getRPMMax()
@@ -46,21 +46,14 @@ void Motorcontroller::setRPM(double rpmLeft, double rpmRight)
 {
   if(abs(rpmRight) > _rpmMax || abs(rpmLeft) > _rpmMax)
   {
-     double rpmLargest = abs(rpmRight);
-     if(rpmLargest<abs(rpmLeft)) rpmLargest = abs(rpmLeft);
-     double factor = rpmLargest / _rpmMax;
-     rpmLeft /= factor;
-     rpmRight /= factor;
-  } 
-  
-  // situations below should not happen
-  // ToDo: check if it is obsolete
-  if(rpmRight >  _rpmMax) rpmRight =  _rpmMax;
-  if(rpmRight < -_rpmMax) rpmRight = -_rpmMax;
-  if(rpmLeft >  _rpmMax) rpmLeft =  _rpmMax;
-  if(rpmLeft < -_rpmMax) rpmLeft = -_rpmMax;
+    double rpmLargest = abs(rpmRight);
+    if(rpmLargest<abs(rpmLeft)) rpmLargest = abs(rpmLeft);
+    double factor = rpmLargest / _rpmMax;
+		rpmLeft /= factor;
+		rpmRight /= factor;
+  }
 
-  int right = _cmdMax * rpmRight/_rpmMax;
+	int right = _cmdMax * rpmRight/_rpmMax;
   int left  = _cmdMax * rpmLeft/_rpmMax;
  
   cout << "RPM(target): " << rpmRight << " Cmd: " << right << endl;
@@ -92,8 +85,8 @@ void Motorcontroller::setRPM(double rpmLeft, double rpmRight)
   write(_tty_fd,c,2);
   usleep(1000);
 
-  _encoder.setForwardLeft(rpmLeft>=0.0);
-  _encoder.setForwardRight(rpmRight>=0.0);
+//  _encoder.setForwardLeft(rpmLeft>=0.0);
+//  _encoder.setForwardRight(rpmRight>=0.0);
 }
 
 double Motorcontroller::getRPMLeft(double* dt)

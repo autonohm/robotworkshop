@@ -1,6 +1,7 @@
 #ifndef MOTORCONTROLLER_H_
 #define MOTORCONTROLLER_H_
 
+#include <PCA9685.h>
 #include "Encoder.h"
 
 /**
@@ -23,6 +24,8 @@ public:
 	 */
 	virtual ~Motorcontroller();
 
+	//void setVelocity(double linear, double angular, double speed);
+
 	/**
 	 * Get maximum revolutions per minute
 	 * @return maximum rpm
@@ -30,11 +33,11 @@ public:
 	int getRPMMax();
 
 	/**
-   * Set revolutions per minute
-   * @param rpmLeft target rpm for left track
-   * @param rpmRight target rpm for right track
-   */
-  void setRPM(double rpmLeft, double rpmRight);
+	 * Set revolutions per minute
+	 * @param rpmLeft rpm for left track
+	 * @param rpmRight rpm for right track
+	 */
+	void setRPM(double rpmLeft, double rpmRight);
 
 	/**
 	 * Get revolutions per minute of left track
@@ -55,8 +58,9 @@ public:
 
 private:
 
-  int _tty_fd;
+	int _tty_fd;
 
+	int _stopState;
 	double _cmdMax;
 	double _rpmMax;
 

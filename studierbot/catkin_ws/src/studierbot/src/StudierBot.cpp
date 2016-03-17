@@ -15,16 +15,10 @@ StudierBot::StudierBot()
   _diagonal            = sqrt(_wheelBase*_wheelBase + _track*_track);
   _cosa                = cos(_track / _diagonal);
 
-  /*if(subscribeJoy)
-  {
-    _joySub = _nh.subscribe<sensor_msgs::Joy>("joy", 1, &StudierBot::joyCallback, this);
-    cout << "Subscribed to joy" << endl;
-  }
-  else*/
-  {
-    _velSub = _nh.subscribe("vel/teleop", 1, &StudierBot::velocityCallback, this);
-    cout << "Subscribed to vel/teleop" << endl;
-  }
+  //if(subscribeJoy)
+  _joySub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &StudierBot::joyCallback, this);
+  //else*/
+  _velSub = _nh.subscribe("vel/teleop", 10, &StudierBot::velocityCallback, this);
 }
 
 void StudierBot::run()
@@ -43,6 +37,10 @@ void StudierBot::run()
     {
       ROS_WARN_STREAM("Lag detected ... exiting robot control node");
     }
+    double rpmLeft = trackspeedToTicksPerTurn(_vl) * 60.0;
+    double rpmRight = trackspeedToTicksPerTurn(_vr) * 60.0;
+
+    _motor.setRPM(rpmLeft, rpmRight);
 
     run = ros::ok() && !lag;
 
@@ -52,8 +50,14 @@ void StudierBot::run()
   _motor.stop();
 }
 
-/*void StudierBot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
+void StudierBot::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
+  double yaw   = joy->axes[4];
+  double pitch = joy->axes[5];
+
+  _servo.setServo(yaw, pitch);
+
+/*
   // Assignment of joystick axes to motor commands
   double linear  = joy->axes[1];
   double angular = joy->axes[0];
@@ -71,27 +75,29 @@ void StudierBot::run()
 
   _motor.setRPM(left, right);
 
-  _lastCmd = ros::Time::now();
-}*/
+  _lastCmd = ros::Time::now();*/
+}
 
 void StudierBot::velocityCallback(const geometry_msgs::TwistStamped& cmd)
 {
-  double vl, vr;
+//  double vl, vr;
 
-  twistToTrackspeed(&vl, &vr, cmd.twist.linear.x, cmd.twist.angular.z);
+  twistToTrackspeed(&_vl, &_vr, cmd.twist.linear.x, cmd.twist.angular.z);
 
-  double rpmLeft  = trackspeedToTicksPerTurn(vl) * 60.0;
-  double rpmRight = trackspeedToTicksPerTurn(vr) * 60.0;
+/*  double rpmLeftTarget  = trackspeedToTicksPerTurn(vl) * 60.0;
+  double rpmRightTarget = trackspeedToTicksPerTurn(vr) * 60.0;
+  double rpmLeft;
+  double rpmRight;
 
-  _motor.setRPM(rpmLeft, rpmRight);
+  _motor.setRPM(rpmLeftTarget, rpmRightTarget, &rpmLeft, &rpmRight);*/
 
   _lastCmd = ros::Time::now();
 }
 
 void StudierBot::twistToTrackspeed(double *vl, double *vr, double v, double omega) const
 {
-  *vr =  -1 * (v + omega * _diagonal / (2.0 * _cosa));
-  *vl =       (v - omega * _diagonal / (2.0 * _cosa));
+  *vr = -1 * (v + omega * _diagonal / (2.0 * _cosa));
+  *vl =       v - omega * _diagonal / (2.0 * _cosa);
 }
 
 void StudierBot::trackspeedToTwist(double vl, double vr, double *v, double *omega) const

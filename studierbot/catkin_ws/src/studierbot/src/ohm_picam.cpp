@@ -5,5 +5,5 @@ int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "ohm_picam_node");
     PiCam node;
-    node.run(10);
+    node.start(100);
 }

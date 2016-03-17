@@ -80,6 +80,7 @@ double Encoder::getTicksPerTurn()
   return _encoderRatio;
 }
 
+/*
 void Encoder::setForwardLeft(bool forward)
 {
   forward == true ? _incLeft = 1 : _incLeft = -1;
@@ -95,19 +96,39 @@ bool Encoder::getForwardRight()
   return _incRight==1;
 }
 
+bool Encoder::getForwardLeft()
+{
+  return _incLeft==1;
+}
+
+bool Encoder::isStopped()
+{
+  ros::Time tNow = ros::Time::now();
+  if(_ticksStopped != _ticks3)
+  {
+    _ticksStopped = _ticks3;
+    _timestampStop = tNow;
+  }
+
+  ros::Duration dur = tNow - _timestampStop;
+  double dt = dur.toSec();
+
+  return dt>1.0;
+}*/
+
 void Encoder::getTicksLeft(double* ticks, double* dt)
 {
   // take smaller integral of both encoders
   long t = _ticks1;
+	*ticks = (double)(t-_ticksLeftOld);
+	_ticksLeftOld = t;
   //if(t>_ticks2) t = _ticks2;
 
-  _ticks1 = 0;
-  _ticks2 = 0;
-
-  *ticks = (double)t;
+  //_ticks1 = 0;
+  //_ticks2 = 0;
 
   ros::Time tNow = ros::Time::now();
-  *ticks = (double)t;
+  //*ticks = (double)t;
   ros::Duration dur = tNow - _timestampLeft;
   *dt = dur.toSec();
   _timestampLeft = tNow;
@@ -117,12 +138,12 @@ void Encoder::getTicksRight(double* ticks, double* dt)
 {
   // take smaller integral of both encoders
   long t = _ticks3;
+  *ticks = (double)(t-_ticksRightOld);
+  _ticksRightOld = t;
   //if(t>_ticks4) t = _ticks4;
 
   //_ticks3 = 0;
   //_ticks4 = 0;
-
-  *ticks = (double)t;
 
   ros::Time tNow = ros::Time::now();
   ros::Duration dur = tNow - _timestampRight;

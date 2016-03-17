@@ -81,7 +81,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES studierbot
+#  LIBRARIES ohm_aut4
   CATKIN_DEPENDS joy roscpp
 #  DEPENDS system_lib
 )
@@ -99,28 +99,29 @@ include_directories(
 )
 
 ## Declare a cpp library
-# add_library(studierbot
-#   src/${PROJECT_NAME}/studierbot.cpp
+# add_library(ohm_aut4
+#   src/${PROJECT_NAME}/ohm_aut4.cpp
 # )
 
 ## Declare a cpp executable
-add_executable(ohm_studierbot_node src/studierbot_node.cpp src/StudierBot.cpp src/Motorcontroller.cpp src/Encoder.cpp)
-#add_executable(ohm_picam_node src/ohm_picam.cpp src/PiCam.cpp)
+add_executable(ohm_studierbot_node src/studierbot_node.cpp src/StudierBot.cpp src/Motorcontroller.cpp src/Encoder.cpp src/Servocontroller.cpp)
+add_executable(ohm_picam_node src/ohm_picam.cpp src/PiCam.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(studierbot_node studierbot_generate_messages_cpp)
+# add_dependencies(ohm_aut4_node ohm_aut4_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(ohm_studierbot_node
   ${catkin_LIBRARIES}
   wiringPi
+  PCA9685
 )
 
-#target_link_libraries(ohm_picam_node
-#  ${catkin_LIBRARIES}
-#  raspicam
-#)
+target_link_libraries(ohm_picam_node
+  ${catkin_LIBRARIES}
+  raspicam
+)
 
 #############
 ## Install ##
@@ -138,6 +139,11 @@ target_link_libraries(ohm_studierbot_node
 
 ## Mark executables and/or libraries for installation
 install(TARGETS ohm_studierbot_node
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(TARGETS ohm_picam_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -162,7 +168,7 @@ install(TARGETS ohm_studierbot_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_studierbot.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_ohm_aut4.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
