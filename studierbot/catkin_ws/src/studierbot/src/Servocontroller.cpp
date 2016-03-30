@@ -20,41 +20,37 @@ Servocontroller::~Servocontroller()
 
 void Servocontroller::setServo(double yaw, double pitch)
 {
-	if(yaw > 0) // Joystic-Knopf nach links; Kamera nach links
+	if(yaw > 0) // Camera to the left
 	{
 		_valuePWMServoYaw -= 10;
 	}
-	else if(yaw < 0) // Joystic-Knopf nach rechts; Kamera nach rechts
+	else if(yaw < 0) // Camera to the right
 	{
 		_valuePWMServoYaw += 10;
 	}
-	if(pitch > 0) // Joystic-Knopf nach oben; Kamera nach oben
+	if(pitch > 0) // Camera to the top
 	{
 		_valuePWMServoPitch += 10;
 	}
-	else if(pitch < 0) // Joystic-Knopf nach unten; Kamera nach unten
+	else if(pitch < 0) // Camera to the buttom
 	{
 		_valuePWMServoPitch -= 10;
 	}
 	
-	if(_valuePWMServoYaw > _servoYawEnd) // Wenn das obere Ende des Kennwertbereichs überschritten wird,
-					     // wird der Zähler auf den höchsten Wert gesetzt
+	if(_valuePWMServoYaw > _servoYawEnd) // Limiting to the upper limit parameter range
 	{
 		_valuePWMServoYaw = _servoYawEnd;
 	}
-	if(_valuePWMServoYaw < _servoYawBeg) // Wenn das unter Ende des Kennwertbereichs unterschritten wird,
-					     // wird der Zähler auf den niedrigsten Wert gesetzt
+	if(_valuePWMServoYaw < _servoYawBeg) // Limiting to the lower limit parameter range
 	{
 		_valuePWMServoYaw = _servoYawBeg;
 	}
 
-	if(_valuePWMServoPitch > _servoPitchEnd) // Wenn das obere Ende des Kennwertbereichs überschritten wird,
-					     // wird der Zähler auf den höchsten Wert gesetzt
+	if(_valuePWMServoPitch > _servoPitchEnd) // Limiting to the upper limit parameter range
 	{
 		_valuePWMServoPitch = _servoPitchEnd;
 	}
-	if(_valuePWMServoPitch < _servoPitchBeg) // Wenn das unter Ende des Kennwertbereichs unterschritten wird,
-					     // wird der Zähler auf den niedrigsten Wert gesetzt
+	if(_valuePWMServoPitch < _servoPitchBeg) // Limiting to the lower limit parameter range
 	{
 		_valuePWMServoPitch = _servoPitchBeg;
 	}

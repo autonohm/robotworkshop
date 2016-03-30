@@ -24,9 +24,9 @@ public:
 	virtual ~Servocontroller();
 
 	/**
-	 * Funktion um die Servos zu steuern
-	 * @param yaw Änderung der z-Achse
-	 * @param pitch Änderung der y-Achse
+	 * Controllfunction for the servos
+	 * @param yaw change of the z-axis
+	 * @param pitch change of the y-axis
 	 */
 	void setServo(double yaw, double pitch);
 
