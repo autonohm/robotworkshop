@@ -1,7 +1,7 @@
 #ifndef MOTORCONTROLLER_H_
 #define MOTORCONTROLLER_H_
 
-#include "SerialPort.h"
+#include "../../../hexapede/hexapete_ctrl_motor/src/SerialPort.h"
 
 /**
  * @class Motorcontroller

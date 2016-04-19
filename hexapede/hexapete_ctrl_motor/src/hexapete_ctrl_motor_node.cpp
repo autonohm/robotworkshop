@@ -1,5 +1,5 @@
+#include "../../../hexapede/hexapete_ctrl_motor/src/Hexapede.h"
 #include "ros/ros.h"
-#include "Hexapede.h"
 
 using namespace std;
 

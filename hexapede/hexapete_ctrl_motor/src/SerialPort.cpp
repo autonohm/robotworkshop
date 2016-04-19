@@ -1,3 +1,5 @@
+#include "../../../hexapede/hexapete_ctrl_motor/src/SerialPort.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -13,7 +15,6 @@
 
 #include <iostream>
 
-#include "SerialPort.h"
 
 SerialPort::SerialPort(const char *comPort, const speed_t baud)
 {

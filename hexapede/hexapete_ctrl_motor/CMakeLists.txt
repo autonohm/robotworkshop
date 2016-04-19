@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(hexapete_op)
+project(hexapede_ctrl_motor)
 
-## Find catkin macros and libraries
+## Find catkin macros and libexapeteraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  joy
   roscpp
-  std_msgs
-  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -44,7 +43,7 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-#add_message_files(
+# add_message_files(
 #   FILES
 #   Message1.msg
 #   Message2.msg
@@ -67,7 +66,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs
+#   std_msgs  # Or other packages containing msgs
 # )
 
 ###################################
@@ -81,8 +80,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES hexapete_ctrl
- CATKIN_DEPENDS roscpp std_msgs geometry_msgs
+#  LIBRARIES hexapede
+  CATKIN_DEPENDS joy roscpp
 #  DEPENDS system_lib
 )
 
@@ -94,23 +93,26 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
-  include ${catkin_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
+  /usr/local/include
 )
 
 ## Declare a cpp library
-# add_library(hexapete_ctrl
-#   src/${PROJECT_NAME}/hexapete_ctrl.cpp
+# add_library(hexapede
+#   src/${PROJECT_NAME}/Hexapede.cpp
 # )
 
 ## Declare a cpp executable
-#add_executable(node1 src/node1.cpp)
+add_executable(hexapete_ctrl_motor_node src/hexapete_ctrl_motor_node.cpp src/SerialPort.cpp src/Motorcontroller.cpp src/Hexapede.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-#add_dependencies(node1 hexapete_op_generate_messages_cpp)
+# add_dependencies(hexapede_ctrl_node hexapede_ctrl_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-#target_link_libraries(node1 ${catkin_LIBRARIES})
+target_link_libraries(hexapete_ctrl_motor_node
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -127,7 +129,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS hexapete_ctrl hexapete_ctrl_node
+# install(TARGETS hexapede_ctrl_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -152,7 +154,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_hexapete_ctrl.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_hexapede_ctrl.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

@@ -1,7 +1,8 @@
-#include "Hexapede.h"
-#include "params.h"
+#include "../../../hexapede/hexapete_ctrl_motor/src/Hexapede.h"
 
 #include <iostream>
+
+#include "../../../hexapede/hexapete_ctrl_motor/src/params.h"
 using namespace std;
 
 Hexapede::Hexapede()

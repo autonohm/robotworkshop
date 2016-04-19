@@ -5,9 +5,8 @@
 #include <sensor_msgs/Joy.h>
 #include <geometry_msgs/TwistStamped.h>
 
-#include "Motorcontroller.h"
-
 #include <iostream>
+#include "../../../hexapede/hexapete_ctrl_motor/src/Motorcontroller.h"
 
 using namespace std;
 

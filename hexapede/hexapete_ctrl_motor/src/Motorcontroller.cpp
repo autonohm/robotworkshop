@@ -1,7 +1,6 @@
-#include "Motorcontroller.h"
-#include <unistd.h>
+#include "../../../hexapede/hexapete_ctrl_motor/src/Motorcontroller.h"
 
-#include "params.h"
+#include <unistd.h>
 
 #include <termios.h>
 #include <errno.h>
@@ -14,6 +13,7 @@
 
 #include <string>
 #include <ros/ros.h>
+#include "../../../hexapede/hexapete_ctrl_motor/src/params.h"
 
 using namespace std;
 
