@@ -1,5 +1,0 @@
-<launch>
-	<include file = "$(find hexapete_joy_to_ctrl)/launch/joytoctrl.launch" />
-	<node name = "hexapete_joy_node" pkg = "joy" type = "joy_node" />
-	<node name = "hexapete_view" pkg = "image_view" type = "image_view" args = "image:=/hexapete_ctrl_cam/image_raw compressed" />
-</launch>
