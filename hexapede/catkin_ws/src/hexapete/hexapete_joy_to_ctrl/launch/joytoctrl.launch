@@ -1,8 +1,0 @@
-<launch>
-	<node name = "hexapete_joy_to_ctrl_node" pkg = "hexapete_joy_to_ctrl" type = "hexapete_joy_to_ctrl_node" output = "screen">
-		<param name = "axis_linear" type = "int" value = "1" />
-		<param name = "axis_angular" type = "int" value = "0" />
-		<param name = "axis_pitch" type = "int" value = "4" />
-		<param name = "axis_yaw" type = "int" value = "3" /> 
-	</node>
-</launch>
