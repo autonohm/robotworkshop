@@ -1,4 +1,4 @@
-#include "../../../hexapede/hexapete_ctrl_motor/src/Motorcontroller.h"
+#include "../../../hexapede/hexapede_ctrl_motor/src/Motorcontroller.h"
 
 #include <unistd.h>
 
@@ -13,7 +13,7 @@
 
 #include <string>
 #include <ros/ros.h>
-#include "../../../hexapede/hexapete_ctrl_motor/src/params.h"
+#include "../../../hexapede/hexapede_ctrl_motor/src/params.h"
 
 using namespace std;
 

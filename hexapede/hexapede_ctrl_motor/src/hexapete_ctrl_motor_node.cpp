@@ -1,4 +1,4 @@
-#include "../../../hexapede/hexapete_ctrl_motor/src/Hexapede.h"
+#include "../../../hexapede/hexapede_ctrl_motor/src/Hexapede.h"
 #include "ros/ros.h"
 
 using namespace std;

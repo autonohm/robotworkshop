@@ -1,4 +1,4 @@
-#include "../../../hexapede/hexapete_ctrl_motor/src/SerialPort.h"
+#include "../../../hexapede/hexapede_ctrl_motor/src/SerialPort.h"
 
 #include <cstdio>
 #include <cstdlib>

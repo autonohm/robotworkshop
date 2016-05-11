@@ -6,7 +6,7 @@
 #include <geometry_msgs/TwistStamped.h>
 
 #include <iostream>
-#include "../../../hexapede/hexapete_ctrl_motor/src/Motorcontroller.h"
+#include "../../../hexapede/hexapede_ctrl_motor/src/Motorcontroller.h"
 
 using namespace std;
 
