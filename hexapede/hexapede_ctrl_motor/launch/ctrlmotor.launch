@@ -1,6 +1,6 @@
 <launch>
-	<node name = "hexapete_ctrl_motor_node" pkg = "hexapete_ctrl_motor" type = "hexapete_ctrl_motor_node" output = "screen">
+	<node name = "hexapede_ctrl_motor_node" pkg = "hexapede_ctrl_motor" type = "hexapede_ctrl_motor_node" output = "screen">
 		<param name = "lag_error" type = "double" value = "1.0"/>
-		<param name = "com_port" type = "string" value = "/dev/ttyACM0"/>		
+		<param name = "com_port" type = "string" value = "/dev/ttymxc3"/>		
 	</node>	
 </launch>

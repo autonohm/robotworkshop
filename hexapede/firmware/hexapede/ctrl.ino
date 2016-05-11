@@ -2,20 +2,22 @@
 /* Sketch for controlling ic-s  */
 /********************************/
 
-//Defines for the digital-Controller
+//Defines for the digital-Controller, PCA9534D
 #define ADDR_D_12 0x21
 #define ADDR_D_34 0x20
 #define ADDR_D_56 0x22
+#define ADDR_D_78 
 
 #define REG_IO   0x00
 #define REG_OUT  0x01
 #define REG_INV  0x02
 #define REG_CTRL 0x03
 
-//Defines for the Analog-controller
+//Defines for the Analog-controller, LTC2629
 #define ADDR_A_12 0x11
 #define ADDR_A_34 0x10
 #define ADDR_A_56 0x12
+#define ADDR_A_78 0x20
 #define ADDR_A    0x73
 
 #define BIT_D_EN1  0x01

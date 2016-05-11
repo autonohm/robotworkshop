@@ -103,14 +103,14 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-add_executable(hexapete_ctrl_motor_node src/hexapete_ctrl_motor_node.cpp src/SerialPort.cpp src/Motorcontroller.cpp src/Hexapede.cpp)
+add_executable(hexapede_ctrl_motor_node src/hexapede_ctrl_motor_node.cpp src/SerialPort.cpp src/Motorcontroller.cpp src/Hexapede.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(hexapede_ctrl_node hexapede_ctrl_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(hexapete_ctrl_motor_node
+target_link_libraries(hexapede_ctrl_motor_node
   ${catkin_LIBRARIES}
 )
 

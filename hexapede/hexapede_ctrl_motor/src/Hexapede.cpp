@@ -19,7 +19,7 @@ Hexapede::Hexapede()
   ros::NodeHandle prvNh("~");
   prvNh.param<double>("lag_error", _lagTime, 1.0);
 
-  _velSub = _nh.subscribe("hexapete/cmd_vel", 1, &Hexapede::velocityCallback, this);
+  _velSub = _nh.subscribe("hexapede/cmd_vel", 1, &Hexapede::velocityCallback, this);
 }
 
 void Hexapede::run()

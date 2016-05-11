@@ -3,7 +3,7 @@
 
 using namespace std;
 
-const char node[]= "hexapete_ctrl_motor_node";
+const char node[]= "hexapede_ctrl_motor_node";
 
 int main(int argc, char **argv)
 {

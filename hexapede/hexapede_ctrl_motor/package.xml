@@ -2,7 +2,7 @@
 <package>
   <name>hexapede_ctrl_motor</name>
   <version>0.0.0</version>
-  <description>The hexapete_ctrl_motor package</description>
+  <description>The hexapede_ctrl_motor package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
