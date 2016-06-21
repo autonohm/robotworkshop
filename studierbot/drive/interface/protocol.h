@@ -6,15 +6,15 @@
 
 #define VALUESCALE 100.f
 
-inline void shortValuesTo4ByteArray(short val1, short val2, char array[])
+inline void convertTo4ByteArray(short* vals, char array[])
 {
-  array[0] = (val1 & 0xFF00) >> 8;
-  array[1] = (val1 & 0x00FF);
-  array[2] = (val2 & 0xFF00) >> 8;
-  array[3] = (val2 & 0x00FF);
+  array[0] = (vals[0] & 0xFF00) >> 8;
+  array[1] = (vals[0] & 0x00FF);
+  array[2] = (vals[1] & 0xFF00) >> 8;
+  array[3] = (vals[1] & 0x00FF);
 }
 
-inline void intTo4ByteArray(int val, char array[])
+inline void convertTo4ByteArray(int val, char array[])
 {
   array[0] = (val & 0xFF000000) >> 24;
   array[1] = (val & 0x00FF0000) >> 16;
@@ -22,7 +22,7 @@ inline void intTo4ByteArray(int val, char array[])
   array[3] = (val & 0x000000FF);
 }
 
-inline void floatTo4ByteArray(float val, char array[])
+inline void convertTo4ByteArray(float val, char array[])
 {
   int* ival = (int*)&val;
   array[0] = (*ival & 0xFF000000) >> 24;
@@ -31,25 +31,26 @@ inline void floatTo4ByteArray(float val, char array[])
   array[3] = (*ival & 0x000000FF);
 }
 
-inline short byteArrayToShort(char array[])
+inline void convertFromByteArray(char array[], short retval[2])
 {
-  return ((array[0] << 8) & 0xFF00) | ((array[1] << 0) & 0x00FF);
+  retval[0] = ((array[0] << 8) & 0xFF00) | ((array[1] << 0) & 0x00FF);
+  retval[1] = ((array[2] << 8) & 0xFF00) | ((array[3] << 0) & 0x00FF);
 }
 
-inline int byteArrayToInt(char array[])
+inline void convertFromByteArray(char array[], int &retval)
 {
-  return ((array[0] << 24) & 0xFF000000) |
-         ((array[1] << 16) & 0x00FF0000) |
-         ((array[2] << 8) & 0x0000FF00)  |
-         ((array[3] << 0) & 0x000000FF);
+  retval = ((array[0] << 24) & 0xFF000000) |
+           ((array[1] << 16) & 0x00FF0000) |
+           ((array[2] << 8) & 0x0000FF00)  |
+           ((array[3] << 0) & 0x000000FF);
 }
 
-inline float byteArrayToFloat(char array[])
+inline void convertFromByteArray(char array[], float &retval)
 {
   int val = ((array[0] << 24) & 0xFF000000) |
             ((array[1] << 16) & 0x00FF0000) |
             ((array[2] << 8) & 0x0000FF00)  |
             ((array[3] << 0) & 0x000000FF);
   float* fval = (float*)&val;
-  return *fval;
+  retval = *fval;
 }

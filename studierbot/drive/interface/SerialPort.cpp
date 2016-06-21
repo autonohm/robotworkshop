@@ -59,8 +59,16 @@ SerialPort::SerialPort(const char *comPort, const speed_t baud)
   tty.c_cflag |= (CLOCAL | CREAD);  // ignore modem controls,
   // enable reading
   tty.c_cflag &= ~(PARENB | PARODD);      // shut off parity
-  tty.c_cflag &= ~CSTOPB;
+  tty.c_cflag |= CSTOPB;
   tty.c_cflag &= ~CRTSCTS;
+
+  tty.c_iflag &= ~IGNCR;  // turn off ignore \r
+  tty.c_iflag &= ~INLCR;  // turn off translate \n to \r
+  tty.c_iflag &= ~ICRNL;  // turn off translate \r to \n
+
+  tty.c_oflag &= ~ONLCR;  // turn off map \n  to \r\n
+  tty.c_oflag &= ~OCRNL;  // turn off map \r to \n
+  tty.c_oflag &= ~OPOST;  // turn off implementation defined output processing
 
   if(tcsetattr(_fd, TCSANOW, &tty) != 0)
   {
