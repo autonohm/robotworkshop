@@ -44,9 +44,9 @@ template<typename T>
 bool sendToMotorshield(char cmd, T param, bool echo)
 {
   _bufCmd[0] = cmd;
-  convertTo4ByteArray(param, &_bufCmd[1]);
-  int sent = _com->send(_bufCmd, 6);
-  bool retval = _com->receive(_bufIn, 5);
+  convertTo8ByteArray(param, &_bufCmd[1]);
+  int sent = _com->send(_bufCmd, 10);
+  bool retval = _com->receive(_bufIn, 9);
 
   if(echo)
   {
@@ -60,25 +60,25 @@ bool sendToMotorshield(char cmd, T param, bool echo)
 
 bool sendToMotorshieldF(char cmd, float param, bool echo)
 {
-  _bufCmd[5] = 'F';
+  _bufCmd[9] = 'F';
   return sendToMotorshield<float>(cmd, param, echo);
 }
 
 bool sendToMotorshieldI(char cmd, int param, bool echo)
 {
-  _bufCmd[5] = 'I';
+  _bufCmd[9] = 'I';
   return sendToMotorshield<int>(cmd, param, echo);
 }
 
-bool sendToMotorshieldS(char cmd, short param[2], bool echo)
+bool sendToMotorshieldS(char cmd, short param[4], bool echo)
 {
-  _bufCmd[5] = 'S';
-  bool retval = sendToMotorshield<short[2]>(cmd, param, false);
+  _bufCmd[9] = 'S';
+  bool retval = sendToMotorshield<short[4]>(cmd, param, false);
   if(echo)
   {
-    short check[2];
+    short check[4];
     convertFromByteArray(_bufIn, check);
-    cout << "Sent " << param[0] << " / " << param[1] << ", echo: " << check[0] << " / " << check[1] << endl;
+    cout << "Sent " << param[0] << " / " << param[1] << " / " << param[2] << " / " << param[3] << ", echo: " << check[0] << " / " << check[1] << " / " << check[2] << " / " << check[3] << endl;
   }
   return retval;
 }
@@ -95,19 +95,22 @@ int main(int argc, char* argv[])
 
   vector<float> vTimestamp;
   vector<float> vU;
-  vector<float> vV;
+  vector<float> vV;  // Response Motor1
+  vector<float> vV2; // Response Motor2
+  vector<float> vV3; // Response Motor3
+  vector<float> vV4; // Response Motor4
 
   float w = atof(argv[1]);
 
   _com = new SerialPort(_comPort, _baud);
 
-  char bufCmd[6];
-  char bufIn[5];
+  char bufCmd[10];
+  char bufIn[9];
   bool retval;
   int sent;
 
-  float kp   = 7.1f;
-  float ki   = 50.0f;
+  float kp   = 5.1f;
+  float ki   = 10.0f;
   float kd   = 0.0f;
 
   // parasitic time constant of closed-loop controller implemented in motor shield
@@ -152,9 +155,12 @@ int main(int argc, char* argv[])
   double t_start = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
   short samples = 1500;
-  short wset[2];
+  short wset[4];
   wset[0] = w * VALUESCALE;
-  wset[1] = 0;
+  wset[1] = wset[0];
+  wset[2] = wset[0];
+  wset[3] = wset[0];
+
   for(short i=0; i<samples; i++)
   {
 
@@ -165,7 +171,9 @@ int main(int argc, char* argv[])
     if(retval)
     {
       short rpm1 = ((_bufIn[0] << 8) & 0xFF00) | (_bufIn[1]  & 0x00FF);
-      short rpm2 = ((_bufIn[3] << 8) & 0xFF00) | (_bufIn[2]  & 0x00FF);
+      short rpm2 = ((_bufIn[2] << 8) & 0xFF00) | (_bufIn[3]  & 0x00FF);
+      short rpm3 = ((_bufIn[4] << 8) & 0xFF00) | (_bufIn[5]  & 0x00FF);
+      short rpm4 = ((_bufIn[6] << 8) & 0xFF00) | (_bufIn[7]  & 0x00FF);
 
       ::gettimeofday(&clk, 0);
       double t_now = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
@@ -173,6 +181,9 @@ int main(int argc, char* argv[])
       vTimestamp.push_back(t_now-t_start);
       vU.push_back(((float)wset[0])/VALUESCALE);
       vV.push_back(((float)rpm1)/VALUESCALE);
+      vV2.push_back(((float)rpm2)/VALUESCALE);
+      vV3.push_back(((float)rpm3)/VALUESCALE);
+      vV4.push_back(((float)rpm4)/VALUESCALE);
 
       //cout << (t_now-t_start) << " " << vU.back() << " " << vV.back() << endl;
     }
@@ -211,7 +222,7 @@ int main(int argc, char* argv[])
   {
     t += deltaT;
     outInput << t << " " << vU[i] << endl;
-    outOutput << t << " " << vV[i] << endl;
+    outOutput << t << " " << vV[i] << " " << vV2[i] << " " << vV3[i] << " " << vV4[i] << endl;
   }
   outInput.close();
   outOutput.close();

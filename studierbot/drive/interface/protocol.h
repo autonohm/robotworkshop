@@ -6,35 +6,49 @@
 
 #define VALUESCALE 100.f
 
-inline void convertTo4ByteArray(short* vals, char array[])
+inline void convertTo8ByteArray(short* vals, char array[])
 {
   array[0] = (vals[0] & 0xFF00) >> 8;
   array[1] = (vals[0] & 0x00FF);
   array[2] = (vals[1] & 0xFF00) >> 8;
   array[3] = (vals[1] & 0x00FF);
+  array[4] = (vals[2] & 0xFF00) >> 8;
+  array[5] = (vals[2] & 0x00FF);
+  array[6] = (vals[3] & 0xFF00) >> 8;
+  array[7] = (vals[3] & 0x00FF);
 }
 
-inline void convertTo4ByteArray(int val, char array[])
+inline void convertTo8ByteArray(int val, char array[])
 {
   array[0] = (val & 0xFF000000) >> 24;
   array[1] = (val & 0x00FF0000) >> 16;
   array[2] = (val & 0x0000FF00) >> 8;
   array[3] = (val & 0x000000FF);
+  array[4] = 0;
+  array[5] = 0;
+  array[6] = 0;
+  array[7] = 0;
 }
 
-inline void convertTo4ByteArray(float val, char array[])
+inline void convertTo8ByteArray(float val, char array[])
 {
   int* ival = (int*)&val;
   array[0] = (*ival & 0xFF000000) >> 24;
   array[1] = (*ival & 0x00FF0000) >> 16;
   array[2] = (*ival & 0x0000FF00) >> 8;
   array[3] = (*ival & 0x000000FF);
+  array[4] = 0;
+  array[5] = 0;
+  array[6] = 0;
+  array[7] = 0;
 }
 
-inline void convertFromByteArray(char array[], short retval[2])
+inline void convertFromByteArray(char array[], short retval[4])
 {
   retval[0] = ((array[0] << 8) & 0xFF00) | ((array[1] << 0) & 0x00FF);
   retval[1] = ((array[2] << 8) & 0xFF00) | ((array[3] << 0) & 0x00FF);
+  retval[2] = ((array[4] << 8) & 0xFF00) | ((array[5] << 0) & 0x00FF);
+  retval[3] = ((array[6] << 8) & 0xFF00) | ((array[7] << 0) & 0x00FF);
 }
 
 inline void convertFromByteArray(char array[], int &retval)

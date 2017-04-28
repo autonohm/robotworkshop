@@ -33,14 +33,17 @@ int main(int argc, char* argv[])
   }
  
   vector<float> vTimestamp;
-  vector<float> vU; // set value
-  vector<float> vV; // response
+  vector<float> vU;  // set value
+  vector<float> vV;  // response Motor1
+  vector<float> vV2; // response Motor2
+  vector<float> vV3; // response Motor3
+  vector<float> vV4; // response Motor4
 
   SerialPort* com = new SerialPort(_comPort, _baud);
 
-  char bufCmd[6];
+  char bufCmd[10];
   bufCmd[0] = 0x00;
-  bufCmd[5] = 'S';
+  bufCmd[9] = 'S';
 
   short inc = 1;
   short val = 0;
@@ -59,19 +62,23 @@ int main(int argc, char* argv[])
   {
     if(i>0.9*samples) u[0] = 0;
 
-    convertTo4ByteArray(u, &bufCmd[1]);
+    u[1] = u[0];
+    u[2] = u[0];
+    u[3] = u[0];
 
-    int sent = com->send(bufCmd, 6);
+    convertTo8ByteArray(u, &bufCmd[1]);
 
-    char output[5];
-    bool retval = com->receive(output, 5);
+    int sent = com->send(bufCmd, 10);
 
-    if(retval & (output[4]=='S'))
+    char response[9];
+    bool retval = com->receive(response, 9);
+
+    if(retval & (response[8]=='S'))
     {
-      short rpm1 = ((output[0] << 8) & 0xFF00) | (output[1]  & 0x00FF);
-      short rpm2 = ((output[3] << 8) & 0xFF00) | (output[2]  & 0x00FF);
-      int rpmHigh = output[0];
-      int rpmLow  = output[1];
+      short rpm1 = ((response[0] << 8) & 0xFF00) | (response[1]  & 0x00FF);
+      short rpm2 = ((response[2] << 8) & 0xFF00) | (response[3]  & 0x00FF);
+      short rpm3 = ((response[4] << 8) & 0xFF00) | (response[5]  & 0x00FF);
+      short rpm4 = ((response[6] << 8) & 0xFF00) | (response[7]  & 0x00FF);
 
       ::gettimeofday(&clk, 0);
       double t_now = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
@@ -79,8 +86,9 @@ int main(int argc, char* argv[])
       vTimestamp.push_back(t_now-t_start);
       vU.push_back(u[0]);
       vV.push_back(((float)rpm1)/VALUESCALE);
-
-      //cout << (t_now-t_start) << " " << u[0] << " " << vV.back() << endl;
+      vV2.push_back(((float)rpm2)/VALUESCALE);
+      vV3.push_back(((float)rpm3)/VALUESCALE);
+      vV4.push_back(((float)rpm4)/VALUESCALE);
     }
     else
       cout << "failed to receive" << endl;
@@ -117,7 +125,7 @@ int main(int argc, char* argv[])
   {
     t += deltaT;
     outInput << t << " " << vU[i] << endl;
-    outOutput << t << " " << vV[i] << endl;
+    outOutput << t << " " << vV[i] << " " << vV2[i] << " " << vV3[i] << " " << vV4[i] <<  endl;
   }
   outInput.close();
   outOutput.close();

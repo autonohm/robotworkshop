@@ -52,7 +52,7 @@ SerialPort::SerialPort(const char *comPort, const speed_t baud)
    of  data is available, or when the timer expires.  If the timer expires without any input
    becoming available, read(2) returns 0*/
   tty.c_cc[VMIN] = 0;
-  tty.c_cc[VTIME] = 10;  //1 second read-timeout
+  tty.c_cc[VTIME] = 1;  //a thenth of a second read-timeout
 
   tty.c_iflag &= ~(IXON | IXOFF | IXANY);  // shut off xon/xoff ctrl
 
@@ -117,7 +117,7 @@ bool SerialPort::receive(char* msg, unsigned int len)
   ssize_t bytesToRead = len*sizeof(*msg);
   ssize_t bytesAvailable = 0;
   int cycles = 0;
-  int maxCycles = 1000;
+  int maxCycles = 10;
   while(bytesRead!=bytesToRead && cycles<maxCycles)
   {
     errno = 0;
