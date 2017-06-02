@@ -27,58 +27,61 @@ const speed_t _baud = B115200;
  * Use of Euler method, instead of classic PID controller
  */
 #define EULER 0
-#define ANTIWINDUP 0
-
+#define ANTIWINDUP 1
+#define MAXRPM 80
+#define TICKPERREV
 SerialPort* _com;
 
-char _bufCmd[6];
-char _bufIn[5];
+char _bufCmd[14];
+char _bufIn[13];
 
 /**
  * Send float commands to motor shield
  * @param cmd command byte
- * @param param float parameter
+ * @param param parameter
+ * @param response response of motor controller
  * @param echo verbosity of function, true provides command line output
  */
 template<typename T>
-bool sendToMotorshield(char cmd, T param, bool echo)
+bool sendToMotorshield(char cmd, T param, T* response, bool echo)
 {
   _bufCmd[0] = cmd;
-  convertTo8ByteArray(param, &_bufCmd[1]);
-  int sent = _com->send(_bufCmd, 10);
-  bool retval = _com->receive(_bufIn, 9);
+  convertTo12ByteArray(param, &_bufCmd[1]);
+
+  int  sent   = _com->send(_bufCmd, 14);
+  bool retval = _com->receive(_bufIn, 13);
+  convertFromByteArray(_bufIn, *response);
 
   if(echo)
   {
-    T check;
-    convertFromByteArray(_bufIn, check);
-    cout << "Sent " << param << ", echo: " << check << endl;
+    cout << "Sent " << param << ", echo: " << *response << endl;
   }
 
   return retval;
 }
 
-bool sendToMotorshieldF(char cmd, float param, bool echo)
+bool sendToMotorshieldF(char cmd, float param, float* response, bool echo)
 {
-  _bufCmd[9] = 'F';
-  return sendToMotorshield<float>(cmd, param, echo);
+  _bufCmd[13] = 'F';
+  return sendToMotorshield<float>(cmd, param, response, echo);
 }
 
-bool sendToMotorshieldI(char cmd, int param, bool echo)
+bool sendToMotorshieldI(char cmd, int param, int* response, bool echo)
 {
-  _bufCmd[9] = 'I';
-  return sendToMotorshield<int>(cmd, param, echo);
+  _bufCmd[13] = 'I';
+  return sendToMotorshield<int>(cmd, param, response, echo);
 }
 
-bool sendToMotorshieldS(char cmd, short param[4], bool echo)
+bool sendToMotorshieldS(char cmd, short param[6], short (*response)[6], bool echo)
 {
-  _bufCmd[9] = 'S';
-  bool retval = sendToMotorshield<short[4]>(cmd, param, false);
+  _bufCmd[13] = 'S';
+  bool retval = sendToMotorshield<short[6]>(cmd, param, response, false);
   if(echo)
   {
-    short check[4];
+    short check[6];
     convertFromByteArray(_bufIn, check);
-    cout << "Sent " << param[0] << " / " << param[1] << " / " << param[2] << " / " << param[3] << ", echo: " << check[0] << " / " << check[1] << " / " << check[2] << " / " << check[3] << endl;
+    cout << "Sent " << param[0] << " / " << param[1] << " / " << param[2] << " / " << param[3] << " / " << param[4] << " / " << param[5]
+         << ", echo: " << check[0] << " / " << check[1] << " / " << check[2] << " / " << check[3] << " / " << check[4] << " / " << check[5] << endl;
   }
   return retval;
 }
@@ -89,7 +92,7 @@ int main(int argc, char* argv[])
 
   if(argc<2)
   {
-    cout << "usage: " << argv[0] << " <rpm>" << endl;
+    cout << "usage: " << argv[0] << " <rpm> [rpm 2] [rpm 3] [rpm 4] [rpm 5] [rpm 6]" << endl;
     return 0;
   }
 
@@ -99,18 +102,50 @@ int main(int argc, char* argv[])
   vector<float> vV2; // Response Motor2
   vector<float> vV3; // Response Motor3
   vector<float> vV4; // Response Motor4
+  vector<float> vV5; // Response Motor5
+  vector<float> vV6; // Response Motor6
 
-  float w = atof(argv[1]);
+  float w[6] = {0, 0, 0, 0, 0, 0};
+
+  w[0] = atof(argv[1]);
+
+  if(argc>2)
+    w[1] = atof(argv[2]);
+
+  if(argc>3)
+    w[2] = atof(argv[3]);
+
+  if(argc>4)
+    w[3] = atof(argv[4]);
+
+  if(argc>5)
+    w[4] = atof(argv[5]);
+
+  if(argc>6)
+    w[5] = atof(argv[6]);
 
   _com = new SerialPort(_comPort, _baud);
 
-  char bufCmd[10];
-  char bufIn[9];
-  bool retval;
-  int sent;
+  char  bufCmd[14];
+  char  bufIn[13];
+  int   sent;
+  float responseF;
+  int   responseI;
+  short responseS[6];
+  bool  retval = false;
 
-  float kp   = 5.1f;
-  float ki   = 10.0f;
+  float gearRatio   = 99.0f;
+  while(!retval)
+  {
+    sendToMotorshieldF(0x16, gearRatio, &responseF, true);
+    retval = (gearRatio==responseF);
+  }
+
+  float ticksPerRev = 12.0f;
+  sendToMotorshieldF(0x17, ticksPerRev, &responseF, true);
+
+  float kp   = 3.1f;
+  float ki   = 15.0f;
   float kd   = 0.0f;
 
   // parasitic time constant of closed-loop controller implemented in motor shield
@@ -130,22 +165,22 @@ int main(int argc, char* argv[])
     transferFunctionToStateControl(bTf, aTf, second, A, b, c, d, true);
 
     for(int i=0; i<9; i++)
-      sendToMotorshieldF(0x05 + i, A[i], true);
+      sendToMotorshieldF(0x05 + i, A[i], &responseF, true);
 
     for(int i=0; i<3; i++)
-      sendToMotorshieldF(0x0E + i, b[i], true);
+      sendToMotorshieldF(0x0E + i, b[i], &responseF, true);
 
     for(int i=0; i<3; i++)
-      sendToMotorshieldF(0x11 + i, c[i], true);
+      sendToMotorshieldF(0x11 + i, c[i], &responseF, true);
 
-    sendToMotorshieldF(0x14, d, true);
+    sendToMotorshieldF(0x14, d, &responseF, true);
   }
   else
   {
-    sendToMotorshieldF(0x02, kp, true);
-    sendToMotorshieldF(0x03, ki, true);
-    sendToMotorshieldF(0x04, kd, true);
-    sendToMotorshieldI(0x15, ANTIWINDUP, true);
+    sendToMotorshieldF(0x02, kp, &responseF, true);
+    sendToMotorshieldF(0x03, ki, &responseF, true);
+    sendToMotorshieldF(0x04, kd, &responseF, true);
+    sendToMotorshieldI(0x15, ANTIWINDUP, &responseI, true);
   }
 
   short val = 0;
@@ -155,25 +190,37 @@ int main(int argc, char* argv[])
   double t_start = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
   short samples = 1500;
-  short wset[4];
-  wset[0] = w * VALUESCALE;
-  wset[1] = wset[0];
-  wset[2] = wset[0];
-  wset[3] = wset[0];
+  short wset[6];
+  wset[0] = w[0] * VALUESCALE;
+  wset[1] = w[1] * VALUESCALE;
+  wset[2] = w[2] * VALUESCALE;
+  wset[3] = w[3] * VALUESCALE;
+  wset[4] = w[4] * VALUESCALE;
+  wset[5] = w[5] * VALUESCALE;
 
   for(short i=0; i<samples; i++)
   {
 
-    if(i>0.7*samples) wset[0] = 0;
+    if(i>samples-200)
+    {
+      wset[0] = 0;
+      wset[1] = 0;
+      wset[2] = 0;
+      wset[3] = 0;
+      wset[4] = 0;
+      wset[5] = 0;
+    }
 
-    bool retval = sendToMotorshieldS(0x01, wset, true);
+    bool retval = sendToMotorshieldS(0x01, wset, &responseS, true);
 
     if(retval)
     {
-      short rpm1 = ((_bufIn[0] << 8) & 0xFF00) | (_bufIn[1]  & 0x00FF);
-      short rpm2 = ((_bufIn[2] << 8) & 0xFF00) | (_bufIn[3]  & 0x00FF);
-      short rpm3 = ((_bufIn[4] << 8) & 0xFF00) | (_bufIn[5]  & 0x00FF);
-      short rpm4 = ((_bufIn[6] << 8) & 0xFF00) | (_bufIn[7]  & 0x00FF);
+      short rpm1 = ((_bufIn[0]  << 8) & 0xFF00) | (_bufIn[1]  & 0x00FF);
+      short rpm2 = ((_bufIn[2]  << 8) & 0xFF00) | (_bufIn[3]  & 0x00FF);
+      short rpm3 = ((_bufIn[4]  << 8) & 0xFF00) | (_bufIn[5]  & 0x00FF);
+      short rpm4 = ((_bufIn[6]  << 8) & 0xFF00) | (_bufIn[7]  & 0x00FF);
+      short rpm5 = ((_bufIn[8]  << 8) & 0xFF00) | (_bufIn[9]  & 0x00FF);
+      short rpm6 = ((_bufIn[10] << 8) & 0xFF00) | (_bufIn[11] & 0x00FF);
 
       ::gettimeofday(&clk, 0);
       double t_now = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
@@ -184,8 +231,8 @@ int main(int argc, char* argv[])
       vV2.push_back(((float)rpm2)/VALUESCALE);
       vV3.push_back(((float)rpm3)/VALUESCALE);
       vV4.push_back(((float)rpm4)/VALUESCALE);
-
-      //cout << (t_now-t_start) << " " << vU.back() << " " << vV.back() << endl;
+      vV5.push_back(((float)rpm5)/VALUESCALE);
+      vV6.push_back(((float)rpm6)/VALUESCALE);
     }
     else
       cout << "failed to receive" << endl;
@@ -222,7 +269,13 @@ int main(int argc, char* argv[])
   {
     t += deltaT;
     outInput << t << " " << vU[i] << endl;
-    outOutput << t << " " << vV[i] << " " << vV2[i] << " " << vV3[i] << " " << vV4[i] << endl;
+    outOutput << t << " " << vV[i];
+    if(argc>2) outOutput << " " << vV2[i];
+    if(argc>3) outOutput << " " << vV3[i];
+    if(argc>4) outOutput << " " << vV4[i];
+    if(argc>5) outOutput << " " << vV5[i];
+    if(argc>6) outOutput << " " << vV6[i];
+    outOutput << endl;
   }
   outInput.close();
   outOutput.close();

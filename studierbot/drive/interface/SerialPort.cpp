@@ -90,7 +90,7 @@ int SerialPort::send(char* msg, unsigned int len)
   return write(_fd, msg, len);
 }
 
-bool SerialPort::receive(short* msg, unsigned int len)
+/*bool SerialPort::receive(short* msg, unsigned int len)
 {
   if(len<6)
   {
@@ -109,7 +109,7 @@ bool SerialPort::receive(short* msg, unsigned int len)
   {
     return false;
   }
-}
+}*/
 
 bool SerialPort::receive(char* msg, unsigned int len)
 {
@@ -145,7 +145,7 @@ bool SerialPort::receive(char* msg, unsigned int len)
   }
 }
 
-bool SerialPort::receive(int* msg, unsigned int len)
+/*bool SerialPort::receive(int* msg, unsigned int len)
 {
   unsigned char buf[256];
   ssize_t bytesRead = 0;
@@ -169,4 +169,4 @@ bool SerialPort::receive(int* msg, unsigned int len)
   {
     return false;
   }
-}
+}*/

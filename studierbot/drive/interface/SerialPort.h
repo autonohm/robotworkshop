@@ -16,9 +16,9 @@ public:
 
   bool receive(char* msg, unsigned int len);
 
-	bool receive(short* msg, unsigned int len);
+	//bool receive(short* msg, unsigned int len);
 
-	bool receive(int* msg, unsigned int len);
+	//bool receive(int* msg, unsigned int len);
 
 private:
 	int _fd;
