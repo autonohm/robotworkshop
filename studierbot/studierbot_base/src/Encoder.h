@@ -30,7 +30,7 @@ public:
 /*  void setForwardLeft(bool forward);
 
   bool getForwardRight();
-	bool getForwardLeft();
+  bool getForwardLeft();
 
   bool isStopped();
 
@@ -78,7 +78,7 @@ private:
   ros::Time _timestampRight;
 
   long _ticksRightOld;
-	long _ticksLeftOld;
+  long _ticksLeftOld;
 
 
   ros::Time _timestampStop;

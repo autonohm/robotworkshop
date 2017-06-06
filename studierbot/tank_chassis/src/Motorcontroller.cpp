@@ -44,9 +44,9 @@ template<typename T>
   bool Motorcontroller::sendToMotorshield(char cmd, T param, bool echo)
   {
     _bufCmd[0] = cmd;
-    convertTo4ByteArray(param, &_bufCmd[1]);
-    int sent = _com->send(_bufCmd, 6);
-    bool retval = _com->receive(_bufIn, 5);
+    convertTo12ByteArray(param, &_bufCmd[1]);
+    int sent = _com->send(_bufCmd, 14);
+    bool retval = _com->receive(_bufIn, 13);
 
     if(echo)
     {
@@ -60,25 +60,25 @@ template<typename T>
 
 bool Motorcontroller::sendToMotorshieldF(char cmd, float param, bool echo)
 {
-  _bufCmd[5] = 'F';
+  _bufCmd[13] = 'F';
   return sendToMotorshield<float>(cmd, param, echo);
 }
 
 bool Motorcontroller::sendToMotorshieldI(char cmd, int param, bool echo)
 {
-  _bufCmd[5] = 'I';
+  _bufCmd[13] = 'I';
   return sendToMotorshield<int>(cmd, param, echo);
 }
 
-bool Motorcontroller::sendToMotorshieldS(char cmd, short param[2], bool echo)
+bool Motorcontroller::sendToMotorshieldS(char cmd, short param[6], bool echo)
 {
-  _bufCmd[5] = 'S';
-  bool retval = sendToMotorshield<short[2]>(cmd, param, false);
+  _bufCmd[13] = 'S';
+  bool retval = sendToMotorshield<short[6]>(cmd, param, false);
   if(echo)
   {
-    short check[2];
+    short check[6];
     convertFromByteArray(_bufIn, check);
-    cout << "Sent " << param[0] << " / " << param[1] << ", echo: " << check[0] << " / " << check[1] << endl;
+    //cout << "Sent " << param[0] << " / " << param[1] << ", echo: " << check[0] << " / " << check[1] << endl;
   }
   return retval;
 }
@@ -192,21 +192,7 @@ double Motorcontroller::getRPMRight(double* dt)
 
 void Motorcontroller::stop()
 {
-  short wset[2];
-
-  wset[0] = 0;
-  wset[1] = 0;
+  short wset[6] = {0, 0, 0, 0, 0, 0};
 
   bool retval = sendToMotorshieldS(0x01, wset, true);
-  /*
-   unsigned char c[2];
-   c[0] = 0xC2;
-   c[1] = 0x00;
-   write(_tty_fd, c, 2);
-   usleep(1000);
-   c[0] = 0xCA;
-   c[1] = 0x00;
-   write(_tty_fd, c, 2);
-   usleep(1000);
-   */
 }
