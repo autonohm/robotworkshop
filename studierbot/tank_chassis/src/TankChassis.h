@@ -32,6 +32,11 @@ public:
 private:
 
   /**
+   * Normalize velocity, i.e., scale values, if one of both exceeds vMax
+   */
+  void normalizeVelocity(double &vl, double &vr);
+
+  /**
    * 2D Motion model: computes tracks velocity based on linear and angular velocity
    */
   void twistToTrackspeed(double *vl, double *vr, double v, double omega) const;
@@ -44,7 +49,7 @@ private:
   /**
    * Translates the metric speed v into the needed motor RPM
    */
-  double trackspeedToTicksPerTurn(double v) const;
+  double trackspeedToRPM(double v) const;
 
   /**
    * ROS joystick callback
@@ -56,7 +61,7 @@ private:
    * ROS command velocity callback
    * @param cmd message with velocity command
    */
-  void velocityCallback(const geometry_msgs::Twist& cmd);
+  void velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd);
 
   ros::NodeHandle _nh;
   ros::Subscriber _joySub;
@@ -69,23 +74,11 @@ private:
   // maximum velocity [m/s]
   double _vMax;
 
-  // distance of wheels (axis length)
+  // distance of tracks
   double _track;
 
-  // distance of axes
-  double _wheelBase;
-
-  // ratio between wheel revolution and motor revolution
-  double _gearRatio;
-
-  // circumference of wheels
-  double _wheelCircumference;
-
-  // diagonal of robot base (wheel contact)
-  double _diagonal;
-
-  // cosine of alpha from kinematic center to front right wheel
-  double _cosa;
+  // circumference of pinion
+  double _pinionCircumference;
 
   // time elapsed since last call
   ros::Time _lastCmd;

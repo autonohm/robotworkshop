@@ -16,16 +16,13 @@ using namespace std;
 
 Motorcontroller::Motorcontroller()
 {
-  _rpmMax = RPMMAX;
-  _cmdMax = CMDMAX;
-  _baud = B115200;
-  _comPort = "/dev/ttyACM0";
+  _rpmMax    = RPMMAX;
+  _gearRatio = GEARRATIO;
+  _baud      = B115200;
+  _comPort   = "/dev/ttyACM0";
 
-  _maxCmd = CMDMAX;
-  _minCmd = -CMDMAX;
-
-  _kp = 3.1f;
-  _ki = 0.0f;
+  _kp = 1.1f;
+  _ki = 20.0f;
   _kd = 0.0f;
 
   _com = new SerialPort(_comPort.c_str(), _baud);
@@ -46,12 +43,12 @@ template<typename T>
     _bufCmd[0] = cmd;
     convertTo12ByteArray(param, &_bufCmd[1]);
     int sent = _com->send(_bufCmd, 14);
-    bool retval = _com->receive(_bufIn, 13);
+    bool retval = _com->receive(_bufResponse, 13);
 
     if(echo)
     {
       T check;
-      convertFromByteArray(_bufIn, check);
+      convertFromByteArray(_bufResponse, check);
       cout << "Sent " << param << ", echo: " << check << endl;
     }
 
@@ -77,49 +74,31 @@ bool Motorcontroller::sendToMotorshieldS(char cmd, short param[6], bool echo)
   if(echo)
   {
     short check[6];
-    convertFromByteArray(_bufIn, check);
-    //cout << "Sent " << param[0] << " / " << param[1] << ", echo: " << check[0] << " / " << check[1] << endl;
+    convertFromByteArray(_bufResponse, check);
   }
   return retval;
 }
 
 void Motorcontroller::init()
 {
-
-  // parasitic time constant of closed-loop controller implemented in motor shield
-  float tPar = 0.01;
-  if(EULER)
+  bool  retval = false;
+  float responseF;
+  _gearRatio   = GEARRATIO;
+  while(!retval)
   {
-    float aTf[4];
-    float bTf[4];
-
-    pidToTransferFunction(_kp, _ki, _kd, tPar, bTf, aTf, true);
-
-    float A[9];
-    float b[3];
-    float c[3];
-    float d;
-
-    transferFunctionToStateControl(bTf, aTf, second, A, b, c, d, true);
-
-    for(int i = 0; i < 9; i++)
-      sendToMotorshieldF(0x05 + i, A[i], true);
-
-    for(int i = 0; i < 3; i++)
-      sendToMotorshieldF(0x0E + i, b[i], true);
-
-    for(int i = 0; i < 3; i++)
-      sendToMotorshieldF(0x11 + i, c[i], true);
-
-    sendToMotorshieldF(0x14, d, true);
+    _bufCmd[0] = 0x16;
+    _bufCmd[13] = 'F';
+    convertTo12ByteArray(_gearRatio, &_bufCmd[1]);
+    int  sent   = _com->send(_bufCmd, 14);
+    retval = _com->receive(_bufResponse, 13);
+    convertFromByteArray(_bufResponse, responseF);
+    retval = (_gearRatio==responseF);
   }
-  else
-  {
-    sendToMotorshieldF(0x02, _kp, true);
-    sendToMotorshieldF(0x03, _ki, true);
-    sendToMotorshieldF(0x04, _kd, true);
-    sendToMotorshieldI(0x15, ANTIWINDUP, true);
-  }
+  cout << "Gear ratio: " << _gearRatio << endl;
+  sendToMotorshieldF(0x02, _kp, true);
+  sendToMotorshieldF(0x03, _ki, true);
+  sendToMotorshieldF(0x04, _kd, true);
+  sendToMotorshieldI(0x15, ANTIWINDUP, true);
 }
 
 Motorcontroller::~Motorcontroller()
@@ -130,6 +109,11 @@ Motorcontroller::~Motorcontroller()
 int Motorcontroller::getRPMMax()
 {
   return (int)_rpmMax;
+}
+
+double Motorcontroller::getGearRatio() const
+{
+  return _gearRatio;
 }
 
 void Motorcontroller::setRPM(double rpmLeft, double rpmRight)
@@ -146,48 +130,34 @@ void Motorcontroller::setRPM(double rpmLeft, double rpmRight)
     rpmLeft /= factor;
     rpmRight /= factor;
   }
-//begin
-  short wset[2];
+
+  short wset[6];
 
   wset[0] = rpmLeft * VALUESCALE;
-  wset[1] = -rpmRight * VALUESCALE;
+  wset[1] = rpmRight * VALUESCALE;
+  wset[2] = wset[0];
+  wset[3] = wset[1];
+  wset[4] = wset[0];
+  wset[5] = wset[1];
 
   bool retval = sendToMotorshieldS(0x01, wset, true);
 
   if(retval)
   {
-    short rpm1 = ((_bufIn[0] << 8) & 0xFF00) | (_bufIn[1] & 0x00FF);
-    short rpm2 = ((_bufIn[3] << 8) & 0xFF00) | (_bufIn[2] & 0x00FF);
-
-    cout << "rpm1: " << rpm1 / VALUESCALE << " rpm2: " << rpm2 / VALUESCALE << endl;
+    _rpm[0] = ((_bufResponse[0] << 8) & 0xFF00) | (_bufResponse[1] & 0x00FF);
+    _rpm[1] = ((_bufResponse[2] << 8) & 0xFF00) | (_bufResponse[3] & 0x00FF);
+    _rpm[2] = ((_bufResponse[4] << 8) & 0xFF00) | (_bufResponse[5] & 0x00FF);
+    _rpm[3] = ((_bufResponse[6] << 8) & 0xFF00) | (_bufResponse[7] & 0x00FF);
+    _rpm[4] = ((_bufResponse[8] << 8) & 0xFF00) | (_bufResponse[9] & 0x00FF);
+    _rpm[5] = ((_bufResponse[10] << 8) & 0xFF00) | (_bufResponse[11] & 0x00FF);
   }
   else
     cout << "failed to receive" << endl;
-
-  //end
-
-//  _encoder.setForwardLeft(rpmLeft>=0.0);
-//  _encoder.setForwardRight(rpmRight>=0.0);
 }
 
-double Motorcontroller::getRPMLeft(double* dt)
+double Motorcontroller::getRPM(unsigned int idx)
 {
-  return 0;
-  /*
-   double ticks;
-   _encoder.getTicksLeft(&ticks, dt);
-   return ticks / (_encoder.getTicksPerTurn() * *dt) * 60.0;
-   */
-}
-
-double Motorcontroller::getRPMRight(double* dt)
-{
-  return 0;
-  /*
-   double ticks;
-   _encoder.getTicksRight(&ticks, dt);
-   return ticks / (_encoder.getTicksPerTurn() * *dt) * 60.0;
-   */
+  return ((double)_rpm[idx]) / (double)VALUESCALE;
 }
 
 void Motorcontroller::stop()

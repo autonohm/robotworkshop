@@ -1,25 +1,18 @@
-#include "../../tank_chassis/src/TankChassis.h"
-
 #include <iostream>
 
+#include "../../tank_chassis/src/TankChassis.h"
 #include "../../tank_chassis/src/params.h"
+
 using namespace std;
 
 TankChassis::TankChassis()
 {
   _track               = TRACK;
-  _wheelBase           = WHEELBASE;
-  _gearRatio           = GEARRATIO;
-  _wheelCircumference  = WHEELCICRUMFERENCE;
-  _vMax                = _motor.getRPMMax() / _gearRatio * WHEELCICRUMFERENCE;
+  _pinionCircumference  = PINIONCIRCUMFERENCE;
+  _vMax                = _motor.getRPMMax() * PINIONCIRCUMFERENCE / 60.0;
 
-  _diagonal            = sqrt(_wheelBase*_wheelBase + _track*_track);
-  _cosa                = cos(_track / _diagonal);
-
-  //if(subscribeJoy)
-  _joySub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &TankChassis::joyCallback, this);
-  //else*/
-  _velSub = _nh.subscribe("vel/teleop", 10, &TankChassis::velocityCallback, this);
+  _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &TankChassis::joyCallback,      this);
+  _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &TankChassis::velocityCallback, this);
 }
 
 void TankChassis::run()
@@ -33,15 +26,19 @@ void TankChassis::run()
     ros::spinOnce();
 
     ros::Duration dt = ros::Time::now() - _lastCmd;
-    bool lag = (dt.toSec()>5.0);
+    bool lag = (dt.toSec()>0.5);
     if(lag)
     {
-      ROS_WARN_STREAM("Lag detected ... exiting robot control node");
+      ROS_WARN_STREAM("Lag detected ... deactivate motor control");
     }
-    double rpmLeft = trackspeedToTicksPerTurn(_vl) * 60.0;
-    double rpmRight = trackspeedToTicksPerTurn(_vr) * 60.0;
-
-    //_motor.setRPM(rpmLeft, rpmRight);
+    else
+    {
+      double rpmLeft  = trackspeedToRPM(_vl);
+      double rpmRight = trackspeedToRPM(_vr);
+      //cout << _vl << " " << _vr << " " << _vMax << " " << rpmLeft << " " << rpmRight << endl;
+      _motor.setRPM(rpmLeft, rpmRight);
+      cout << _motor.getRPM(0) << " " << _motor.getRPM(1) << endl;
+    }
 
     run = ros::ok();// && !lag;
 
@@ -51,63 +48,55 @@ void TankChassis::run()
   _motor.stop();
 }
 
+void TankChassis::normalizeVelocity(double &vl, double &vr)
+{
+  double trackMax = abs(vl);
+  if(abs(vr)>trackMax) trackMax=abs(vr);
+
+  double scale = 1.0;
+  if(trackMax>_vMax) scale = _vMax/trackMax;
+
+  vl = scale * vl;
+  vr = scale * vr;
+}
+
 void TankChassis::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
-//axes 0 left js:  left-right
-//axes 1 left js:  up - down
-
-//axes 2 right js: left-right
-//axes 3 right js: up - down 
-
   // Assignment of joystick axes to motor commands
-  double linear  = joy->axes[0];
-  double angular = joy->axes[1];
+  double linear  = joy->axes[1];
+  double angular = joy->axes[2];
   double speed   = (joy->axes[3]+1.0)/2.0;
 
-  double rpmMax = _motor.getRPMMax();
+  _vl = _vMax * speed * (-linear-angular);
+  _vr = _vMax * speed * (linear-angular);
 
-  int left  = rpmMax * speed * (-linear-angular);
-  int right = rpmMax * speed * (linear-angular);
-
-  if(left>rpmMax)   left  = rpmMax;
-  if(left<-rpmMax)  left  = -rpmMax;
-  if(right>rpmMax)  right = rpmMax;
-  if(right<-rpmMax) right = -rpmMax;
-
-  _motor.setRPM(left, right);
+  normalizeVelocity(_vl, _vr);
 
   _lastCmd = ros::Time::now();
 }
 
-void TankChassis::velocityCallback(const geometry_msgs::Twist& cmd)
+void TankChassis::velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 {
-//  double vl, vr;
+  twistToTrackspeed(&_vl, &_vr, cmd->linear.x, cmd->angular.z);
 
-  twistToTrackspeed(&_vl, &_vr, cmd.linear.x, cmd.angular.z);
-
-/*  double rpmLeftTarget  = trackspeedToTicksPerTurn(vl) * 60.0;
-  double rpmRightTarget = trackspeedToTicksPerTurn(vr) * 60.0;
-  double rpmLeft;
-  double rpmRight;
-
-  _motor.setRPM(rpmLeftTarget, rpmRightTarget, &rpmLeft, &rpmRight);*/
+  normalizeVelocity(_vl, _vr);
 
   _lastCmd = ros::Time::now();
 }
 
 void TankChassis::twistToTrackspeed(double *vl, double *vr, double v, double omega) const
 {
-  *vr = -1 * (v + omega * _diagonal / (2.0 * _cosa));
-  *vl =       v - omega * _diagonal / (2.0 * _cosa);
+  *vr = -1 * (v + omega * _track);
+  *vl =       v - omega * _track;  
 }
 
 void TankChassis::trackspeedToTwist(double vl, double vr, double *v, double *omega) const
 {
   *v     = (vl + vr) / 2.0;
-  *omega = (vr - vl) * _cosa / (2.0 * _diagonal);
+  *omega = (vr - vl) * _track;
 }
 
-double TankChassis::trackspeedToTicksPerTurn(double v) const
+double TankChassis::trackspeedToRPM(double v) const
 {
-  return (v / _wheelCircumference) * _gearRatio;
+  return (v / _pinionCircumference * 60.0);
 }

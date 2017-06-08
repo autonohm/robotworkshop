@@ -39,6 +39,8 @@ public:
    */
   int getRPMMax();
 
+  double getGearRatio() const;
+
   /**
    * Set revolutions per minute
    * @param rpmLeft rpm for left track
@@ -47,16 +49,11 @@ public:
   void setRPM(double rpmLeft, double rpmRight);
 
   /**
-   * Get revolutions per minute of left track
+   * Get revolutions per minute
+   * param idx motor index
    * @return rpm
    */
-  double getRPMLeft(double* dt);
-
-  /**
-  * Get revolutions per minute of right track
-  * @return rpm
-  */
-  double getRPMRight(double* dt);
+  double getRPM(unsigned int idx);
 
   /**
    * Stop motors
@@ -68,26 +65,21 @@ private:
 
   template<typename T>
   bool sendToMotorshield(char cmd, T param, bool echo);
-
   bool sendToMotorshieldS(char cmd, short param[2], bool echo);
   bool sendToMotorshieldI(char cmd, int param, bool echo);
   bool sendToMotorshieldF(char cmd, float param, bool echo);
 
 
-
   std::string _comPort;
   speed_t _baud;
   char _bufCmd[14];
-  char _bufIn[13];
+  char _bufResponse[13];
   SerialPort* _com;
 
   int _stopState;
-  double _cmdMax;
   double _rpmMax;
-
-  int _maxCmd;
-  int _minCmd;
-
+  float _gearRatio;
+  short _rpm[6];
 
   float _kp;
   float _ki;
