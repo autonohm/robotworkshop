@@ -97,13 +97,8 @@ int main(int argc, char* argv[])
   }
 
   vector<float> vTimestamp;
-  vector<float> vU;
-  vector<float> vV;  // Response Motor1
-  vector<float> vV2; // Response Motor2
-  vector<float> vV3; // Response Motor3
-  vector<float> vV4; // Response Motor4
-  vector<float> vV5; // Response Motor5
-  vector<float> vV6; // Response Motor6
+  vector<float> vU, vU2, vU3, vU4, vU5, vU6;  // Input Motor 1-6
+  vector<float> vV, vV2, vV3, vV4, vV5, vV6;  // Response Motor 1-6
 
   float w[6] = {0, 0, 0, 0, 0, 0};
 
@@ -145,7 +140,7 @@ int main(int argc, char* argv[])
   sendToMotorshieldF(0x17, ticksPerRev, &responseF, true);
 
   float kp   = 3.1f;
-  float ki   = 15.0f;
+  float ki   = 50.0f;
   float kd   = 0.0f;
 
   // parasitic time constant of closed-loop controller implemented in motor shield
@@ -189,27 +184,39 @@ int main(int argc, char* argv[])
   ::gettimeofday(&clk, 0);
   double t_start = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
-  short samples = 1500;
+  int samples = 500;
+  short wsetBase[6];
   short wset[6];
-  wset[0] = w[0] * VALUESCALE;
-  wset[1] = w[1] * VALUESCALE;
-  wset[2] = w[2] * VALUESCALE;
-  wset[3] = w[3] * VALUESCALE;
-  wset[4] = w[4] * VALUESCALE;
-  wset[5] = w[5] * VALUESCALE;
+  double wsetOffset[6];
+  wsetBase[0] = w[0] * VALUESCALE;
+  wsetBase[1] = w[1] * VALUESCALE;
+  wsetBase[2] = w[2] * VALUESCALE;
+  wsetBase[3] = w[3] * VALUESCALE;
+  wsetBase[4] = w[4] * VALUESCALE;
+  wsetBase[5] = w[5] * VALUESCALE;
 
-  for(short i=0; i<samples; i++)
+  wsetOffset[0] = 0.0;
+  wsetOffset[1] = M_PI/6.0;
+  wsetOffset[2] = 2.0*M_PI/6.0;
+  wsetOffset[3] = 3.0*M_PI/6.0;
+  wsetOffset[4] = 4.0*M_PI/6.0;
+  wsetOffset[5] = 5.0*M_PI/6.0;
+
+  for(int i=0; i<samples; i++)
   {
 
-    if(i>samples-200)
+    if(i>samples-50)
     {
-      wset[0] = 0;
-      wset[1] = 0;
-      wset[2] = 0;
-      wset[3] = 0;
-      wset[4] = 0;
-      wset[5] = 0;
+      wsetBase[0] = 0;
+      wsetBase[1] = 0;
+      wsetBase[2] = 0;
+      wsetBase[3] = 0;
+      wsetBase[4] = 0;
+      wsetBase[5] = 0;
     }
+
+    for(int j=0; j<6; j++)
+      wset[j] = wsetBase[j] * sin(((double)i)/180.0*(M_PI/1.0) + wsetOffset[j]);
 
     bool retval = sendToMotorshieldS(0x01, wset, &responseS, true);
 
@@ -227,6 +234,11 @@ int main(int argc, char* argv[])
 
       vTimestamp.push_back(t_now-t_start);
       vU.push_back(((float)wset[0])/VALUESCALE);
+      vU2.push_back(((float)wset[1])/VALUESCALE);
+      vU3.push_back(((float)wset[2])/VALUESCALE);
+      vU4.push_back(((float)wset[3])/VALUESCALE);
+      vU5.push_back(((float)wset[4])/VALUESCALE);
+      vU6.push_back(((float)wset[5])/VALUESCALE);
       vV.push_back(((float)rpm1)/VALUESCALE);
       vV2.push_back(((float)rpm2)/VALUESCALE);
       vV3.push_back(((float)rpm3)/VALUESCALE);
@@ -268,7 +280,13 @@ int main(int argc, char* argv[])
   for(int i=0; i<vTimestamp.size(); i++)
   {
     t += deltaT;
-    outInput << t << " " << vU[i] << endl;
+    outInput << t << " " << vU[i];
+    if(argc>2) outInput << " " << vU2[i];
+    if(argc>3) outInput << " " << vU3[i];
+    if(argc>4) outInput << " " << vU4[i];
+    if(argc>5) outInput << " " << vU5[i];
+    if(argc>6) outInput << " " << vU6[i];
+    outInput << endl;
     outOutput << t << " " << vV[i];
     if(argc>2) outOutput << " " << vV2[i];
     if(argc>3) outOutput << " " << vV3[i];
