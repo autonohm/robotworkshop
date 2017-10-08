@@ -3,13 +3,9 @@
 
 #include <string>
 
-//#include "../../studierbot_base/src/Encoder.h"
 #include "../../drive/interface/SerialPort.h"
 #include "../../drive/interface/protocol.h"
 #include "../../drive/interface/control.h"
-
-#define EULER 0
-#define ANTIWINDUP 0
 
 /**
  * @class Motorcontroller
@@ -31,14 +27,16 @@ public:
    */
   virtual ~Motorcontroller();
 
-  //void setVelocity(double linear, double angular, double speed);
-
   /**
    * Get maximum revolutions per minute
    * @return maximum rpm
    */
   int getRPMMax();
 
+  /**
+   * Get ratio of gearbox
+   * @return gear ratio
+   */
   double getGearRatio() const;
 
   /**
@@ -61,8 +59,15 @@ public:
   void stop();
 
 private:
+
   void init();
 
+  /**
+   * Send commands to motor shield
+   * @param cmd command byte
+   * @param param parameter
+   * @param echo verbosity of function, true provides command line output
+   */
   template<typename T>
   bool sendToMotorshield(char cmd, T param, bool echo);
   bool sendToMotorshieldS(char cmd, short param[2], bool echo);
@@ -79,13 +84,13 @@ private:
   int _stopState;
   double _rpmMax;
   float _gearRatio;
+  float _encoderRatio;
   short _rpm[6];
 
   float _kp;
   float _ki;
   float _kd;
 
-  //Encoder _encoder;
 };
 
 #endif /* MOTORCONTROLLER_H_ */

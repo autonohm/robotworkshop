@@ -1,21 +1,21 @@
 #include <iostream>
 
-#include "../../tank_chassis/src/TankChassis.h"
-#include "../../tank_chassis/src/params.h"
+#include "../../mechanum_steering/src/MechanumSteering.h"
+#include "../../mechanum_steering/src/params.h"
 
 using namespace std;
 
-TankChassis::TankChassis()
+MechanumSteering::MechanumSteering()
 {
-  _track               = TRACK;
+  _track                = TRACK;
   _pinionCircumference  = PINIONCIRCUMFERENCE;
-  _vMax                = _motor.getRPMMax() * PINIONCIRCUMFERENCE / 60.0;
+  _vMax                 = _motor.getRPMMax() * PINIONCIRCUMFERENCE / 60.0;
 
-  _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &TankChassis::joyCallback,      this);
-  _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &TankChassis::velocityCallback, this);
+  _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &MechanumSteering::joyCallback,      this);
+  _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &MechanumSteering::velocityCallback, this);
 }
 
-void TankChassis::run()
+void MechanumSteering::run()
 {
   ros::Rate rate(25);
   _lastCmd = ros::Time::now();
@@ -48,7 +48,7 @@ void TankChassis::run()
   _motor.stop();
 }
 
-void TankChassis::normalizeVelocity(double &vl, double &vr)
+void MechanumSteering::normalizeVelocity(double &vl, double &vr)
 {
   double trackMax = abs(vl);
   if(abs(vr)>trackMax) trackMax=abs(vr);
@@ -60,7 +60,7 @@ void TankChassis::normalizeVelocity(double &vl, double &vr)
   vr = scale * vr;
 }
 
-void TankChassis::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
+void MechanumSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
   // Assignment of joystick axes to motor commands
   double linear  = joy->axes[1];
@@ -75,7 +75,7 @@ void TankChassis::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   _lastCmd = ros::Time::now();
 }
 
-void TankChassis::velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd)
+void MechanumSteering::velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 {
   twistToTrackspeed(&_vl, &_vr, cmd->linear.x, cmd->angular.z);
 
@@ -84,19 +84,19 @@ void TankChassis::velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd)
   _lastCmd = ros::Time::now();
 }
 
-void TankChassis::twistToTrackspeed(double *vl, double *vr, double v, double omega) const
+void MechanumSteering::twistToTrackspeed(double *vl, double *vr, double v, double omega) const
 {
   *vr = -1 * (v + omega * _track);
   *vl =       v - omega * _track;  
 }
 
-void TankChassis::trackspeedToTwist(double vl, double vr, double *v, double *omega) const
+void MechanumSteering::trackspeedToTwist(double vl, double vr, double *v, double *omega) const
 {
   *v     = (vl + vr) / 2.0;
   *omega = (vr - vl) * _track;
 }
 
-double TankChassis::trackspeedToRPM(double v) const
+double MechanumSteering::trackspeedToRPM(double v) const
 {
   return (v / _pinionCircumference * 60.0);
 }

@@ -23,6 +23,21 @@ using namespace std;
 const char _comPort[] = "/dev/ttyACM0";
 const speed_t _baud = B115200;
 
+/**
+ * Two types of gear motors are supported, e.g.
+ * Pololu 131:1 Metal Gearmotor 37Dx57L mm with 64 CPR Encoder,        Pololu item#: 1447
+ * Pololu  99:1 Metal Gearmotor 25Dx54L mm MP 12V with 48 CPR Encoder, Pololu item#: 3243
+ */
+#define POLOLU_GEARMOTOR_37D 0
+
+#if POLOLU_GEARMOTOR_37D
+#define GEARRATIO 131.f
+#define ENCODERTICKSPERREV 64.f
+#else
+#define GEARRATIO 99.f
+#define ENCODERTICKSPERREV 48.f
+#endif
+
 int main(int argc, char* argv[])
 {
  
@@ -38,7 +53,7 @@ int main(int argc, char* argv[])
 
   bool  retval = false;
   float responseF;
-  float gearRatio   = 99.0f;
+  float gearRatio = GEARRATIO;
   while(!retval)
   {
     bufCmd[0] = 0x16;
@@ -51,7 +66,7 @@ int main(int argc, char* argv[])
   }
   cout << "Gear ratio: " << gearRatio << endl;
 
-  float ticksPerRev = 12.0f;
+  float ticksPerRev = ENCODERTICKSPERREV;
   bufCmd[0] = 0x17;
   convertTo12ByteArray(ticksPerRev, &bufCmd[1]);
   int  sent   = com->send(bufCmd, 14);
@@ -79,7 +94,7 @@ int main(int argc, char* argv[])
   ::gettimeofday(&clk, 0);
   double t_start = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
-  short samples = 1500;
+  short samples = 15000;
   short u[6]    = {0, 0, 0, 0, 0, 0};
   u[0] = atoi(argv[1]);
   if(u[0]>100)  u[0] =  100;

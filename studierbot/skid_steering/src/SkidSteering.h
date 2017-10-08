@@ -1,28 +1,28 @@
-#ifndef TANKCHASSIS_H_
-#define TANKCHASSIS_H_
+#ifndef SKIDSTEERING_H_
+#define SKIDSTEERING_H_
 
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../tank_chassis/src/Motorcontroller.h"
+#include "../../skid_steering/src/Motorcontroller.h"
 
 using namespace std;
 
 /**
- * @class Main class for low-cost robot platform (DAGU metal tank)
+ * @class Main class for robot drives based on skid steering
  * @author Stefan May
  * @date 15.05.2014
  */
-class TankChassis
+class SkidSteering
 {
 public:
 
   /**
    * Standard Constructor
    */
-  TankChassis();
+  SkidSteering();
 
   /**
    * ROS main loop (blocking method)

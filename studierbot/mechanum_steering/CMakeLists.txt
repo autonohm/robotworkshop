@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(tank_chassis)
+project(mechanum_steering)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -103,13 +103,12 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-add_executable(tank_chassis_node
- src/tank_chassis_node.cpp
- src/TankChassis.cpp
+add_executable(mechanum_steering_node
+ src/mechanum_steering_node.cpp
+ src/MechanumSteering.cpp
  src/Motorcontroller.cpp 
  ../drive/interface/control.cpp
  ../drive/interface/SerialPort.cpp
-# src/Encoder.cpp
 )
 
 ## Add cmake target dependencies of the executable/library
@@ -117,9 +116,8 @@ add_executable(tank_chassis_node
 # add_dependencies(ohm_aut4_node ohm_aut4_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(tank_chassis_node
+target_link_libraries(mechanum_steering_node
   ${catkin_LIBRARIES}
-#  wiringPi
 )
 
 #############
@@ -137,7 +135,7 @@ target_link_libraries(tank_chassis_node
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS tank_chassis_node
+install(TARGETS mechanum_steering_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

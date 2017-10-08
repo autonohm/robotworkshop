@@ -21,9 +21,9 @@ Motorcontroller::Motorcontroller()
   _baud      = B115200;
   _comPort   = "/dev/ttyACM0";
 
-  _kp = 1.1f;
-  _ki = 20.0f;
-  _kd = 0.0f;
+  _kp = PID_KP;
+  _ki = PID_KI;
+  _kd = PID_KD;
 
   _com = new SerialPort(_comPort.c_str(), _baud);
 
@@ -31,29 +31,23 @@ Motorcontroller::Motorcontroller()
   stop();
 }
 
-/**
- * Send float commands to motor shield
- * @param cmd command byte
- * @param param float parameter
- * @param echo verbosity of function, true provides command line output
- */
 template<typename T>
-  bool Motorcontroller::sendToMotorshield(char cmd, T param, bool echo)
+bool Motorcontroller::sendToMotorshield(char cmd, T param, bool echo)
+{
+  _bufCmd[0] = cmd;
+  convertTo12ByteArray(param, &_bufCmd[1]);
+  int sent = _com->send(_bufCmd, 14);
+  bool retval = _com->receive(_bufResponse, 13);
+
+  if(echo)
   {
-    _bufCmd[0] = cmd;
-    convertTo12ByteArray(param, &_bufCmd[1]);
-    int sent = _com->send(_bufCmd, 14);
-    bool retval = _com->receive(_bufResponse, 13);
-
-    if(echo)
-    {
-      T check;
-      convertFromByteArray(_bufResponse, check);
-      cout << "Sent " << param << ", echo: " << check << endl;
-    }
-
-    return retval;
+    T check;
+    convertFromByteArray(_bufResponse, check);
+    cout << "Sent " << param << ", echo: " << check << endl;
   }
+
+  return retval;
+}
 
 bool Motorcontroller::sendToMotorshieldF(char cmd, float param, bool echo)
 {
@@ -89,12 +83,26 @@ void Motorcontroller::init()
     _bufCmd[0] = 0x16;
     _bufCmd[13] = 'F';
     convertTo12ByteArray(_gearRatio, &_bufCmd[1]);
-    int  sent   = _com->send(_bufCmd, 14);
+    int sent = _com->send(_bufCmd, 14);
     retval = _com->receive(_bufResponse, 13);
     convertFromByteArray(_bufResponse, responseF);
     retval = (_gearRatio==responseF);
   }
   cout << "Gear ratio: " << _gearRatio << endl;
+
+  retval = false;
+  _encoderRatio = ENCODERRATIO;
+  while(!retval)
+  {
+    _bufCmd[0] = 0x17;
+    _bufCmd[13] = 'F';
+    convertTo12ByteArray(_encoderRatio, &_bufCmd[1]);
+    int sent = _com->send(_bufCmd, 14);
+    retval = _com->receive(_bufResponse, 13);
+    convertFromByteArray(_bufResponse, responseF);
+    retval = (_encoderRatio==responseF);
+  }
+
   sendToMotorshieldF(0x02, _kp, true);
   sendToMotorshieldF(0x03, _ki, true);
   sendToMotorshieldF(0x04, _kd, true);
