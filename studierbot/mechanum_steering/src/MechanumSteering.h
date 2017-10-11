@@ -6,7 +6,7 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../skid_steering/src/Motorcontroller.h"
+#include "../../mechanum_steering/src/Motorcontroller.h"
 
 using namespace std;
 
@@ -32,26 +32,6 @@ public:
 private:
 
   /**
-   * Normalize velocity, i.e., scale values, if one of both exceeds vMax
-   */
-  void normalizeVelocity(double &vl, double &vr);
-
-  /**
-   * 2D Motion model: computes tracks velocity based on linear and angular velocity
-   */
-  void twistToTrackspeed(double *vl, double *vr, double v, double omega) const;
-
-  /**
-   * 2D Motion model: computes linear and angular velocity based on tracks velocity
-   */
-  void trackspeedToTwist(double vl, double vr, double *v, double *omega) const;
-
-  /**
-   * Translates the metric speed v into the needed motor RPM
-   */
-  double trackspeedToRPM(double v) const;
-
-  /**
    * ROS joystick callback
    * @param joy message with joystick command
    */
@@ -63,22 +43,36 @@ private:
    */
   void velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd);
 
+  void normalizeAndMap(double vFwd, double vLeft, double omega);
+
   ros::NodeHandle _nh;
   ros::Subscriber _joySub;
   ros::Subscriber _velSub;
 
   Motorcontroller _motor;
 
-  double _vl, _vr;
+  double _rpm[6];
 
   // maximum velocity [m/s]
   double _vMax;
 
+  // maximum rotating rate [rad]
+  double _omegaMax;
+
+  // conversion from [m/s] to revolutions per minute [RPM]
+  double _ms2rpm;
+
+  // conversion from revolutions per minute [RPM] to [m/s]
+  double _rpm2ms;
+
   // distance of tracks
   double _track;
 
-  // circumference of pinion
-  double _pinionCircumference;
+  // leverage for rotational movement, i.e. distance between kinematic center and wheel contact point
+  double _leverage;
+
+  // correction factor to address non-quadratic chassis
+  double _tangentialFactor;
 
   // time elapsed since last call
   ros::Time _lastCmd;

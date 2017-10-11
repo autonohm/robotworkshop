@@ -7,12 +7,24 @@ using namespace std;
 
 MechanumSteering::MechanumSteering()
 {
-  _track                = TRACK;
-  _pinionCircumference  = PINIONCIRCUMFERENCE;
-  _vMax                 = _motor.getRPMMax() * PINIONCIRCUMFERENCE / 60.0;
+  _leverage         = sqrt(WHEELBASE*WHEELBASE+TRACK*TRACK)/2.0;
+  _tangentialFactor = 1.0/cos(atan2(WHEELBASE, TRACK)-(M_PI/4.0));
+  _ms2rpm           = 60.0/(WHEELDIAMETER*M_PI);
+  _rpm2ms           = 1.0 / _ms2rpm;
+  _vMax             = _motor.getRPMMax() * _rpm2ms * sin(M_PI/4.0);
+  _omegaMax         = _vMax / (_tangentialFactor * _leverage);
 
-  _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &MechanumSteering::joyCallback,      this);
+  _joySub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &MechanumSteering::joyCallback, this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &MechanumSteering::velocityCallback, this);
+
+  _rpm[0] = 0.0;
+  _rpm[1] = 0.0;
+  _rpm[2] = 0.0;
+  _rpm[3] = 0.0;
+  _rpm[4] = 0.0;
+  _rpm[5] = 0.0;
+
+  cout << "Initialized mechanum steering with vMax: " << _vMax << " m/s" << endl;
 }
 
 void MechanumSteering::run()
@@ -30,14 +42,11 @@ void MechanumSteering::run()
     if(lag)
     {
       ROS_WARN_STREAM("Lag detected ... deactivate motor control");
+      _motor.stop();
     }
     else
     {
-      double rpmLeft  = trackspeedToRPM(_vl);
-      double rpmRight = trackspeedToRPM(_vr);
-      //cout << _vl << " " << _vr << " " << _vMax << " " << rpmLeft << " " << rpmRight << endl;
-      _motor.setRPM(rpmLeft, rpmRight);
-      cout << _motor.getRPM(0) << " " << _motor.getRPM(1) << endl;
+      _motor.setRPM(_rpm);
     }
 
     run = ros::ok();// && !lag;
@@ -48,55 +57,57 @@ void MechanumSteering::run()
   _motor.stop();
 }
 
-void MechanumSteering::normalizeVelocity(double &vl, double &vr)
-{
-  double trackMax = abs(vl);
-  if(abs(vr)>trackMax) trackMax=abs(vr);
-
-  double scale = 1.0;
-  if(trackMax>_vMax) scale = _vMax/trackMax;
-
-  vl = scale * vl;
-  vr = scale * vr;
-}
-
 void MechanumSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
   // Assignment of joystick axes to motor commands
-  double linear  = joy->axes[1];
-  double angular = joy->axes[2];
-  double speed   = (joy->axes[3]+1.0)/2.0;
+  double fwd   = joy->axes[1];            // Range of values [-1:1]
+  double left  = joy->axes[0];            // Range of values [-1:1]
+  double turn  = joy->axes[2];            // Range of values [-1:1]
+  double speed = (joy->axes[3]+1.0)/2.0;  // Range of values [0:1]
 
-  _vl = _vMax * speed * (-linear-angular);
-  _vr = _vMax * speed * (linear-angular);
+  double vFwd  = speed * fwd  * _vMax;
+  double vLeft = speed * left * _vMax;
+  double omega = speed * turn * _omegaMax;
 
-  normalizeVelocity(_vl, _vr);
-
-  _lastCmd = ros::Time::now();
+  normalizeAndMap(vFwd, vLeft, omega);
 }
 
 void MechanumSteering::velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 {
-  twistToTrackspeed(&_vl, &_vr, cmd->linear.x, cmd->angular.z);
+  normalizeAndMap(cmd->linear.x, cmd->linear.y, cmd->angular.z);
+}
 
-  normalizeVelocity(_vl, _vr);
+void MechanumSteering::normalizeAndMap(double vFwd, double vLeft, double omega)
+{
+  double rpmFwd   = vFwd  / sin(M_PI/4.0) * _ms2rpm;
+  double rpmLeft  = vLeft / sin(M_PI/4.0) * _ms2rpm;
+  double rpmOmega = omega / sin(M_PI/4.0) * _tangentialFactor * _leverage * _ms2rpm;
+
+  //cout << "vFwd: " << vFwd << "m/s, vLeft: " << vLeft << "m/s, omega: " << omega << endl;
+  //cout << "rpmFwd: " << rpmFwd << ", rpmLeft: " << rpmLeft << ", rpmOmega: " << rpmOmega << endl;
+
+  _rpm[0] = rpmFwd - rpmLeft - rpmOmega; // front left
+  _rpm[1] = rpmFwd + rpmLeft - rpmOmega; // rear left
+  _rpm[2] = rpmFwd + rpmLeft + rpmOmega; // front right
+  _rpm[3] = rpmFwd - rpmLeft + rpmOmega; // rear right
+
+  // remap direction due to motor mounting (flip direction of left side)
+  _rpm[0] = -_rpm[0];
+  _rpm[1] = -_rpm[1];
+
+  // Normalize values, if any value exceeds the maximum
+  double rpmMax = std::abs(_rpm[0]);
+  for(int i=1; i<4; i++)
+  {
+    if(std::abs(_rpm[i]) > RPMMAX)
+      rpmMax = std::abs(_rpm[i]);
+  }
+  if(rpmMax > RPMMAX)
+  {
+    double factor = RPMMAX / rpmMax;
+    for(int i=0; i<4; i++)
+      _rpm[i] *= factor;
+  }
 
   _lastCmd = ros::Time::now();
-}
-
-void MechanumSteering::twistToTrackspeed(double *vl, double *vr, double v, double omega) const
-{
-  *vr = -1 * (v + omega * _track);
-  *vl =       v - omega * _track;  
-}
-
-void MechanumSteering::trackspeedToTwist(double vl, double vr, double *v, double *omega) const
-{
-  *v     = (vl + vr) / 2.0;
-  *omega = (vr - vl) * _track;
-}
-
-double MechanumSteering::trackspeedToRPM(double v) const
-{
-  return (v / _pinionCircumference * 60.0);
 }

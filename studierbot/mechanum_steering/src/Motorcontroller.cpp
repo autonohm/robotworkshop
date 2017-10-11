@@ -20,7 +20,7 @@ Motorcontroller::Motorcontroller()
   _gearRatio = GEARRATIO;
   _baud      = B115200;
   _comPort   = "/dev/ttyACM0";
-
+cout << _rpmMax << endl;
   _kp = PID_KP;
   _ki = PID_KI;
   _kd = PID_KD;
@@ -114,9 +114,9 @@ Motorcontroller::~Motorcontroller()
   stop();
 }
 
-int Motorcontroller::getRPMMax()
+double Motorcontroller::getRPMMax()
 {
-  return (int)_rpmMax;
+  return _rpmMax;
 }
 
 double Motorcontroller::getGearRatio() const
@@ -124,29 +124,31 @@ double Motorcontroller::getGearRatio() const
   return _gearRatio;
 }
 
-void Motorcontroller::setRPM(double rpmLeft, double rpmRight)
+void Motorcontroller::setRPM(double rpm[4])
 {
-  if(std::abs(rpmRight) > _rpmMax || std::abs(rpmLeft) > _rpmMax)
+  double rpmLargest = std::abs(rpm[0]);
+  for(int i=1; i<4; i++)
   {
-    double rpmLargest = std::abs(rpmRight);
-    if(rpmLargest < std::abs(rpmLeft))
-    {
-      rpmLargest = std::abs(rpmLeft);
-    }
-
-    double factor = rpmLargest / _rpmMax;
-    rpmLeft /= factor;
-    rpmRight /= factor;
+    if(std::abs(rpm[i])> rpmLargest)
+      rpmLargest = std::abs(rpm[i]);
   }
+  double factor = rpmLargest / _rpmMax;
 
+  if(factor>1.0)
+  {
+    for(int i=0; i<4; i++)
+    {
+      rpm[i] = rpm[i] /= factor;
+    }
+  }
   short wset[6];
 
-  wset[0] = rpmLeft * VALUESCALE;
-  wset[1] = rpmRight * VALUESCALE;
-  wset[2] = wset[0];
-  wset[3] = wset[1];
-  wset[4] = wset[0];
-  wset[5] = wset[1];
+  wset[0] = rpm[0] * VALUESCALE;
+  wset[1] = rpm[1] * VALUESCALE;
+  wset[2] = rpm[2] * VALUESCALE;
+  wset[3] = rpm[3] * VALUESCALE;
+  wset[4] = 0.0;
+  wset[5] = 0.0;
 
   bool retval = sendToMotorshieldS(0x01, wset, true);
 

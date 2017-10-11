@@ -31,7 +31,7 @@ public:
    * Get maximum revolutions per minute
    * @return maximum rpm
    */
-  int getRPMMax();
+  double getRPMMax();
 
   /**
    * Get ratio of gearbox
@@ -41,10 +41,9 @@ public:
 
   /**
    * Set revolutions per minute
-   * @param rpmLeft rpm for left track
-   * @param rpmRight rpm for right track
+   * @param rpm 4-channel rpm value
    */
-  void setRPM(double rpmLeft, double rpmRight);
+  void setRPM(double rpm[4]);
 
   /**
    * Get revolutions per minute
