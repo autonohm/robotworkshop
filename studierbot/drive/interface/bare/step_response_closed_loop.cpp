@@ -28,11 +28,11 @@ const speed_t _baud = B115200;
  * Pololu 131:1 Metal Gearmotor 37Dx57L mm with 64 CPR Encoder,        Pololu item#: 1447
  * Pololu  99:1 Metal Gearmotor 25Dx54L mm MP 12V with 48 CPR Encoder, Pololu item#: 3243
  */
-#define POLOLU_GEARMOTOR_37D 0
+#define POLOLU_GEARMOTOR_37D 1
 
 #if POLOLU_GEARMOTOR_37D
 #define GEARRATIO 131.f
-#define ENCODERTICKSPERREV 64.f
+#define ENCODERTICKSPERREV 16.f
 #define RPMMAX 80
 #else
 #define GEARRATIO 99.f
@@ -43,10 +43,10 @@ const speed_t _baud = B115200;
 /**
  * PID controller parameter
  */
-#define _KP 3.1f
-#define _KI 50.f
+#define _KP 0.0f
+#define _KI 1.f
 #define _KD 0.f
-#define ANTIWINDUP 1
+#define ANTIWINDUP 0
 #define EULER 0 //Use of Euler method, instead of classic PID controller
 
 #define _INPUTSINE 0
@@ -160,9 +160,9 @@ int main(int argc, char* argv[])
   float ticksPerRev = ENCODERTICKSPERREV;
   sendToMotorshieldF(0x17, ticksPerRev, &responseF, true);
 
-  float kp   = 3.1f;
-  float ki   = 50.0f;
-  float kd   = 0.0f;
+  float kp   = _KP;
+  float ki   = _KI;
+  float kd   = _KD;
 
   // parasitic time constant of closed-loop controller implemented in motor shield
   float tPar = 0.01;
@@ -242,7 +242,10 @@ int main(int argc, char* argv[])
 
     bool retval = sendToMotorshieldS(0x01, wset, &responseS, true);
 #else
-    bool retval = sendToMotorshieldS(0x01, wsetBase, &responseS, true);
+    for(int j=0; j<6; j++)
+      wset[j] = wsetBase[j];
+
+    bool retval = sendToMotorshieldS(0x01, wset, &responseS, true);
 #endif
 
     if(retval)
