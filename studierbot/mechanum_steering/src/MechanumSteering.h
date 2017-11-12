@@ -33,16 +33,22 @@ private:
 
   /**
    * ROS joystick callback
-   * @param joy message with joystick command
+   * @param[in] joy message with joystick command
    */
   void joyCallback(const sensor_msgs::Joy::ConstPtr& joy);
 
   /**
    * ROS command velocity callback
-   * @param cmd message with velocity command
+   * @param[in] cmd message with velocity command
    */
   void velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd);
 
+  /**
+   * Normalize motion command and assign it to the channels
+   * @param[in] vFwd forward velocity (x-axis)
+   * @param[in] vLeft velocity to the left (y-axis)
+   * @param[in] omega angular velocity (arround z-axis)
+   */
   void normalizeAndMap(double vFwd, double vLeft, double omega);
 
   ros::NodeHandle _nh;
@@ -51,6 +57,7 @@ private:
 
   Motorcontroller _motor;
 
+  // revolutions per minute for each channel (only 4 of 6 channels are used)
   double _rpm[6];
 
   // maximum velocity [m/s]

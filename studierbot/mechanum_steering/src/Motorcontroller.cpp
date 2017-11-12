@@ -20,7 +20,7 @@ Motorcontroller::Motorcontroller()
   _gearRatio = GEARRATIO;
   _baud      = B115200;
   _comPort   = "/dev/ttyACM0";
-cout << _rpmMax << endl;
+  cout << "Maximum RPM: " << _rpmMax << endl;
   _kp = PID_KP;
   _ki = PID_KI;
   _kd = PID_KD;
