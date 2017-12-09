@@ -11,20 +11,27 @@
 
 #include <iostream>
 
-#include "params.h"
 using namespace std;
 
-Motorcontroller::Motorcontroller()
+Motorcontroller::Motorcontroller(MotorParams params,
+                                 float kp,
+                                 float ki,
+                                 float kd,
+                                 int antiWindup)
 {
-  _rpmMax    = RPMMAX;
-  _gearRatio = GEARRATIO;
-  _baud      = B115200;
-  _comPort   = "/dev/ttyACM0";
+  _rpmMax       = params.rpmMax;
+  _gearRatio    = params.gearRatio;
+  _encoderRatio = params.encoderRatio;
+  _antiWindup   = antiWindup;
 
-  _kp = PID_KP;
-  _ki = PID_KI;
-  _kd = PID_KD;
+  cout << "Maximum RPM: " << _rpmMax << endl;
 
+  _kp = kp;
+  _ki = ki;
+  _kd = kd;
+
+  _baud         = B115200;
+  _comPort      = "/dev/ttyACM0";
   _com = new SerialPort(_comPort.c_str(), _baud);
 
   init();
@@ -77,7 +84,7 @@ void Motorcontroller::init()
 {
   bool  retval = false;
   float responseF;
-  _gearRatio   = GEARRATIO;
+
   while(!retval)
   {
     _bufCmd[0] = 0x16;
@@ -91,7 +98,7 @@ void Motorcontroller::init()
   cout << "Gear ratio: " << _gearRatio << endl;
 
   retval = false;
-  _encoderRatio = ENCODERRATIO;
+
   while(!retval)
   {
     _bufCmd[0] = 0x17;
@@ -106,7 +113,7 @@ void Motorcontroller::init()
   sendToMotorshieldF(0x02, _kp, true);
   sendToMotorshieldF(0x03, _ki, true);
   sendToMotorshieldF(0x04, _kd, true);
-  sendToMotorshieldI(0x15, ANTIWINDUP, true);
+  sendToMotorshieldI(0x15, _antiWindup, true);
 }
 
 Motorcontroller::~Motorcontroller()
@@ -114,39 +121,41 @@ Motorcontroller::~Motorcontroller()
   stop();
 }
 
-int Motorcontroller::getRPMMax()
+float Motorcontroller::getRPMMax()
 {
-  return (int)_rpmMax;
+  return _rpmMax;
 }
 
-double Motorcontroller::getGearRatio() const
+float Motorcontroller::getGearRatio() const
 {
   return _gearRatio;
 }
 
-void Motorcontroller::setRPM(double rpmLeft, double rpmRight)
+void Motorcontroller::setRPM(float rpm[6])
 {
-  if(std::abs(rpmRight) > _rpmMax || std::abs(rpmLeft) > _rpmMax)
+  float rpmLargest = std::abs(rpm[0]);
+  for(int i=1; i<6; i++)
   {
-    double rpmLargest = std::abs(rpmRight);
-    if(rpmLargest < std::abs(rpmLeft))
-    {
-      rpmLargest = std::abs(rpmLeft);
-    }
-
-    double factor = rpmLargest / _rpmMax;
-    rpmLeft /= factor;
-    rpmRight /= factor;
+    if(std::abs(rpm[i])> rpmLargest)
+      rpmLargest = std::abs(rpm[i]);
   }
+  float factor = rpmLargest / _rpmMax;
 
+  if(factor>1.0)
+  {
+    for(int i=0; i<6; i++)
+    {
+      rpm[i] = rpm[i] /= factor;
+    }
+  }
   short wset[6];
 
-  wset[0] = rpmLeft * VALUESCALE;
-  wset[1] = rpmRight * VALUESCALE;
-  wset[2] = wset[0];
-  wset[3] = wset[1];
-  wset[4] = wset[0];
-  wset[5] = wset[1];
+  wset[0] = rpm[0] * VALUESCALE;
+  wset[1] = rpm[1] * VALUESCALE;
+  wset[2] = rpm[2] * VALUESCALE;
+  wset[3] = rpm[3] * VALUESCALE;
+  wset[4] = rpm[4] * VALUESCALE;
+  wset[5] = rpm[5] * VALUESCALE;
 
   bool retval = sendToMotorshieldS(0x01, wset, true);
 
@@ -163,9 +172,9 @@ void Motorcontroller::setRPM(double rpmLeft, double rpmRight)
     cout << "failed to receive" << endl;
 }
 
-double Motorcontroller::getRPM(unsigned int idx)
+float Motorcontroller::getRPM(unsigned int idx)
 {
-  return ((double)_rpm[idx]) / (double)VALUESCALE;
+  return ((float)_rpm[idx]) / (float)VALUESCALE;
 }
 
 void Motorcontroller::stop()

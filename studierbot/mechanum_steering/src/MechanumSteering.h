@@ -6,9 +6,27 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../mechanum_steering/src/Motorcontroller.h"
+#include "../../drive/interface/Motorcontroller.h"
 
 using namespace std;
+
+struct ChannelMap
+{
+  int frontLeft;
+  int frontRight;
+  int rearLeft;
+  int rearRight;
+  int direction;
+
+  ChannelMap()
+  {
+    frontLeft     = 0;
+    frontRight    = 0;
+    rearLeft      = 0;
+    rearRight     = 0;
+    direction     = 0;
+  }
+};
 
 /**
  * @class Main class for robot drives based on mechanum steering
@@ -21,8 +39,15 @@ public:
 
   /**
    * Standard Constructor
+   * @params[in] params motor parameters
+   * @params[in] map map for assigning channels to position of wheels
    */
-  MechanumSteering();
+  MechanumSteering(MotorParams* params, ChannelMap map);
+
+  /**
+   * Destructor
+   */
+  ~MechanumSteering();
 
   /**
    * ROS main loop (blocking method)
@@ -49,37 +74,39 @@ private:
    * @param[in] vLeft velocity to the left (y-axis)
    * @param[in] omega angular velocity (arround z-axis)
    */
-  void normalizeAndMap(double vFwd, double vLeft, double omega);
+  void normalizeAndMap(float vFwd, float vLeft, float omega);
 
   ros::NodeHandle _nh;
   ros::Subscriber _joySub;
   ros::Subscriber _velSub;
 
-  Motorcontroller _motor;
+  Motorcontroller* _motor;
+  MotorParams*     _params;
+  ChannelMap       _channelMap;
 
   // revolutions per minute for each channel (only 4 of 6 channels are used)
-  double _rpm[6];
+  float _rpm[6];
 
   // maximum velocity [m/s]
-  double _vMax;
+  float _vMax;
 
   // maximum rotating rate [rad]
-  double _omegaMax;
+  float _omegaMax;
 
   // conversion from [m/s] to revolutions per minute [RPM]
-  double _ms2rpm;
+  float _ms2rpm;
 
   // conversion from revolutions per minute [RPM] to [m/s]
-  double _rpm2ms;
+  float _rpm2ms;
 
   // distance of tracks
-  double _track;
+  float _track;
 
   // leverage for rotational movement, i.e. distance between kinematic center and wheel contact point
-  double _leverage;
+  float _leverage;
 
   // correction factor to address non-quadratic chassis
-  double _tangentialFactor;
+  float _tangentialFactor;
 
   // time elapsed since last call
   ros::Time _lastCmd;

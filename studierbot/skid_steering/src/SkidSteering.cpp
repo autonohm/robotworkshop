@@ -5,14 +5,28 @@
 
 using namespace std;
 
-SkidSteering::SkidSteering()
+SkidSteering::SkidSteering(MotorParams params)
 {
+  _motor = new Motorcontroller(params, PID_KP, PID_KI, PID_KD, ANTIWINDUP);
+
   _track                = TRACK;
   _pinionCircumference  = PINIONCIRCUMFERENCE;
-  _vMax                 = _motor.getRPMMax() * PINIONCIRCUMFERENCE / 60.0;
+  _vMax                 = _motor->getRPMMax() * PINIONCIRCUMFERENCE / 60.f;
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &SkidSteering::joyCallback,      this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &SkidSteering::velocityCallback, this);
+
+  _rpm[0] = 0.0;
+  _rpm[1] = 0.0;
+  _rpm[2] = 0.0;
+  _rpm[3] = 0.0;
+  _rpm[4] = 0.0;
+  _rpm[5] = 0.0;
+}
+
+SkidSteering::~SkidSteering()
+{
+  delete _motor;
 }
 
 void SkidSteering::run()
@@ -33,11 +47,13 @@ void SkidSteering::run()
     }
     else
     {
-      double rpmLeft  = trackspeedToRPM(_vl);
-      double rpmRight = trackspeedToRPM(_vr);
+      float rpmLeft  = trackspeedToRPM(_vl);
+      float rpmRight = trackspeedToRPM(_vr);
+      _rpm[0] = rpmLeft;
+      _rpm[1] = rpmRight;
       //cout << _vl << " " << _vr << " " << _vMax << " " << rpmLeft << " " << rpmRight << endl;
-      _motor.setRPM(rpmLeft, rpmRight);
-      cout << _motor.getRPM(0) << " " << _motor.getRPM(1) << endl;
+      _motor->setRPM(_rpm);
+      cout << _motor->getRPM(0) << " " << _motor->getRPM(1) << endl;
     }
 
     run = ros::ok();// && !lag;
@@ -45,15 +61,15 @@ void SkidSteering::run()
     rate.sleep();
   }
 
-  _motor.stop();
+  _motor->stop();
 }
 
-void SkidSteering::normalizeVelocity(double &vl, double &vr)
+void SkidSteering::normalizeVelocity(float &vl, float &vr)
 {
-  double trackMax = abs(vl);
+  float trackMax = abs(vl);
   if(abs(vr)>trackMax) trackMax=abs(vr);
 
-  double scale = 1.0;
+  float scale = 1.f;
   if(trackMax>_vMax) scale = _vMax/trackMax;
 
   vl = scale * vl;
@@ -63,9 +79,9 @@ void SkidSteering::normalizeVelocity(double &vl, double &vr)
 void SkidSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
   // Assignment of joystick axes to motor commands
-  double linear  = joy->axes[1];
-  double angular = joy->axes[2];
-  double speed   = (joy->axes[3]+1.0)/2.0;
+  float linear  = joy->axes[1];
+  float angular = joy->axes[2];
+  float speed   = (joy->axes[3]+1.f)/2.f;
 
   _vl = _vMax * speed * (-linear-angular);
   _vr = _vMax * speed * (linear-angular);
@@ -84,19 +100,19 @@ void SkidSteering::velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd)
   _lastCmd = ros::Time::now();
 }
 
-void SkidSteering::twistToTrackspeed(double *vl, double *vr, double v, double omega) const
+void SkidSteering::twistToTrackspeed(float *vl, float *vr, float v, float omega) const
 {
-  *vr = -1 * (v + omega * _track);
+  *vr = -1.f * (v + omega * _track);
   *vl =       v - omega * _track;  
 }
 
-void SkidSteering::trackspeedToTwist(double vl, double vr, double *v, double *omega) const
+void SkidSteering::trackspeedToTwist(float vl, float vr, float *v, float *omega) const
 {
-  *v     = (vl + vr) / 2.0;
+  *v     = (vl + vr) / 2.f;
   *omega = (vr - vl) * _track;
 }
 
-double SkidSteering::trackspeedToRPM(double v) const
+float SkidSteering::trackspeedToRPM(float v) const
 {
-  return (v / _pinionCircumference * 60.0);
+  return (v / _pinionCircumference * 60.f);
 }

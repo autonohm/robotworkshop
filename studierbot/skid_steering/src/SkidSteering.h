@@ -6,7 +6,7 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../skid_steering/src/Motorcontroller.h"
+#include "../../drive/interface/Motorcontroller.h"
 
 using namespace std;
 
@@ -21,8 +21,14 @@ public:
 
   /**
    * Standard Constructor
+   * @param[in] params motor parameters
    */
-  SkidSteering();
+  SkidSteering(MotorParams params);
+
+  /**
+   * Destructor
+   */
+  ~SkidSteering();
 
   /**
    * ROS main loop (blocking method)
@@ -34,22 +40,22 @@ private:
   /**
    * Normalize velocity, i.e., scale values, if one of both exceeds vMax
    */
-  void normalizeVelocity(double &vl, double &vr);
+  void normalizeVelocity(float &vl, float &vr);
 
   /**
    * 2D Motion model: computes tracks velocity based on linear and angular velocity
    */
-  void twistToTrackspeed(double *vl, double *vr, double v, double omega) const;
+  void twistToTrackspeed(float *vl, float *vr, float v, float omega) const;
 
   /**
    * 2D Motion model: computes linear and angular velocity based on tracks velocity
    */
-  void trackspeedToTwist(double vl, double vr, double *v, double *omega) const;
+  void trackspeedToTwist(float vl, float vr, float *v, float *omega) const;
 
   /**
    * Translates the metric speed v into the needed motor RPM
    */
-  double trackspeedToRPM(double v) const;
+  float trackspeedToRPM(float v) const;
 
   /**
    * ROS joystick callback
@@ -67,18 +73,21 @@ private:
   ros::Subscriber _joySub;
   ros::Subscriber _velSub;
 
-  Motorcontroller _motor;
+  Motorcontroller* _motor;
 
-  double _vl, _vr;
+  // revolutions per minute for each channel (only 2 of 6 channels are used)
+  float _rpm[6];
+
+  float _vl, _vr;
 
   // maximum velocity [m/s]
-  double _vMax;
+  float _vMax;
 
   // distance of tracks
-  double _track;
+  float _track;
 
   // circumference of pinion
-  double _pinionCircumference;
+  float _pinionCircumference;
 
   // time elapsed since last call
   ros::Time _lastCmd;

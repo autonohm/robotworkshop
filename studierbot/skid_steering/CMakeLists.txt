@@ -106,7 +106,7 @@ include_directories(
 add_executable(skid_steering_node
  src/skid_steering_node.cpp
  src/SkidSteering.cpp
- src/Motorcontroller.cpp 
+  ../drive/interface/Motorcontroller.cpp 
  ../drive/interface/control.cpp
  ../drive/interface/SerialPort.cpp
 )

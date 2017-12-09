@@ -106,7 +106,7 @@ include_directories(
 add_executable(mechanum_steering_node
  src/mechanum_steering_node.cpp
  src/MechanumSteering.cpp
- src/Motorcontroller.cpp 
+  ../drive/interface/Motorcontroller.cpp 
  ../drive/interface/control.cpp
  ../drive/interface/SerialPort.cpp
 )

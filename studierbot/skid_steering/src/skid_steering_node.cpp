@@ -5,6 +5,7 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "skid_steering_node");
-  SkidSteering robot;
+  MotorParams params(Pololu_Gearmotor_37D);
+  SkidSteering robot(params);
   robot.run();
 }
