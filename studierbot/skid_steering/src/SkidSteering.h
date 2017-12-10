@@ -23,7 +23,7 @@ public:
    * Standard Constructor
    * @param[in] params motor parameters
    */
-  SkidSteering(MotorParams params);
+  SkidSteering(MotorParams params, ChannelMap map);
 
   /**
    * Destructor
@@ -74,6 +74,7 @@ private:
   ros::Subscriber _velSub;
 
   Motorcontroller* _motor;
+  ChannelMap       _channelMap;
 
   // revolutions per minute for each channel (only 2 of 6 channels are used)
   float _rpm[6];

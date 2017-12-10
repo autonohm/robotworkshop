@@ -1,0 +1,13 @@
+<launch>
+  <node pkg="mechanum_steering" type="mechanum_steering_node" name="mechanum_steering_node" output="screen">
+    <param name="chFrontLeft"  value="0"/>
+    <param name="chFrontRight" value="1"/>
+    <param name="chRearLeft"   value="2"/>
+    <param name="chRearRight"  value="3"/>
+    <param name="direction"    value="-1"/>
+    <param name="kp"           value="0.5"/>
+    <param name="ki"           value="5.0"/>
+    <param name="kd"           value="0.0"/>
+    <param name="antiWindup"   value="1"/>
+  </node>
+</launch>

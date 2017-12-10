@@ -5,9 +5,10 @@
 
 using namespace std;
 
-SkidSteering::SkidSteering(MotorParams params)
+SkidSteering::SkidSteering(MotorParams params, ChannelMap map)
 {
-  _motor = new Motorcontroller(params, PID_KP, PID_KI, PID_KD, ANTIWINDUP);
+  _motor = new Motorcontroller(params);
+  _channelMap = map;
 
   _track                = TRACK;
   _pinionCircumference  = PINIONCIRCUMFERENCE;
@@ -49,8 +50,13 @@ void SkidSteering::run()
     {
       float rpmLeft  = trackspeedToRPM(_vl);
       float rpmRight = trackspeedToRPM(_vr);
-      _rpm[0] = rpmLeft;
-      _rpm[1] = rpmRight;
+      if(_channelMap.frontLeft   >= 0)  _rpm[_channelMap.frontLeft]   = rpmLeft;
+      if(_channelMap.centerLeft  >= 0)  _rpm[_channelMap.centerLeft]  = rpmLeft;
+      if(_channelMap.rearLeft    >= 0)  _rpm[_channelMap.rearLeft]    = rpmLeft;
+      if(_channelMap.frontRight  >= 0)  _rpm[_channelMap.frontRight]  = rpmRight;
+      if(_channelMap.centerRight >= 0)  _rpm[_channelMap.centerRight] = rpmRight;
+      if(_channelMap.rearRight   >= 0)  _rpm[_channelMap.rearRight]   = rpmRight;
+
       //cout << _vl << " " << _vr << " " << _vMax << " " << rpmLeft << " " << rpmRight << endl;
       _motor->setRPM(_rpm);
       cout << _motor->getRPM(0) << " " << _motor->getRPM(1) << endl;

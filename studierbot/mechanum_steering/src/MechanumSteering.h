@@ -10,24 +10,6 @@
 
 using namespace std;
 
-struct ChannelMap
-{
-  int frontLeft;
-  int frontRight;
-  int rearLeft;
-  int rearRight;
-  int direction;
-
-  ChannelMap()
-  {
-    frontLeft     = 0;
-    frontRight    = 0;
-    rearLeft      = 0;
-    rearRight     = 0;
-    direction     = 0;
-  }
-};
-
 /**
  * @class Main class for robot drives based on mechanum steering
  * @author Stefan May

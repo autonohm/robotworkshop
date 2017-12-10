@@ -7,13 +7,13 @@ using namespace std;
 
 MechanumSteering::MechanumSteering(MotorParams* params, ChannelMap map)
 {
-  _params = new MotorParams(params->type);
+  _params = new MotorParams(*params);
   _channelMap = map;
   // ensure that the direction parameter is set properly (either 1 or -1)
   if(_channelMap.direction>0) _channelMap.direction = 1;
   else _channelMap.direction = -1;
 
-  _motor  = new Motorcontroller(*_params, PID_KP, PID_KI, PID_KD, ANTIWINDUP);
+  _motor  = new Motorcontroller(*_params);
 
   _leverage         = sqrt(WHEELBASE*WHEELBASE+TRACK*TRACK)/2.0;
   _tangentialFactor = 1.0/cos(atan2(WHEELBASE, TRACK)-(M_PI/4.0));

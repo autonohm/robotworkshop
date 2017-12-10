@@ -10,10 +10,19 @@
 enum MotorType {Pololu_Gearmotor_25D, Pololu_Gearmotor_37D, Faulhaber_16002};
 struct MotorParams
 {
-  float gearRatio;
-  float encoderRatio;
-  float rpmMax;
+  float     gearRatio;
+  float     encoderRatio;
+  float     rpmMax;
+  float     kp;
+  float     ki;
+  float     kd;
+  int       antiWindup;
   MotorType type;
+
+  /**
+   * Standard constructor assigns default parameters
+   * @param[in] t motor type
+   */
   MotorParams(MotorType t)
   {
     type = t;
@@ -35,9 +44,50 @@ struct MotorParams
       rpmMax       = 120.f;
       break;
     }
+    kp         = 1.f;
+    ki         = 0.f;
+    kd         = 0.f;
+    antiWindup = 1;
+  }
+
+  /**
+   * Copy constructor
+   * @param[in] p parameter instance to be copied
+   */
+  MotorParams(const MotorParams &p)
+  {
+    type = p.type;
+    gearRatio = p.gearRatio;
+    encoderRatio = p.encoderRatio;
+    rpmMax = p.rpmMax;
+    kp = p.kp;
+    ki = p.ki;
+    kd = p.kd;
+    antiWindup = p.antiWindup;
   }
 };
 
+struct ChannelMap
+{
+  int frontLeft;
+  int frontRight;
+  int centerLeft;
+  int centerRight;
+  int rearLeft;
+  int rearRight;
+  int direction;
+
+  ChannelMap()
+  {
+    frontLeft     = 0;
+    frontRight    = 0;
+    centerLeft    = 0;
+    centerRight   = 0;
+    rearLeft      = 0;
+    rearRight     = 0;
+    direction     = 0;
+  }
+};
 
 /**
  * @class Motorcontroller
@@ -51,13 +101,9 @@ public:
 
   /**
    * Constructor
-   * @param[in] params gear motor parameters
-   * @param[in] kp proportional gain of PID controller
-   * @param[in] ki integration factor of PID controller
-   * @param[in] kd derivative action parameter of PID controller
-   * @param[in] antiWindup anti-windup measure for PID controller
+   * @param[in] params gear motor parameters, PID controller parameters
    */
-  Motorcontroller(MotorParams params, float kp, float ki, float kd, int antiWindup);
+  Motorcontroller(MotorParams params);
 
   /**
    * Destructor

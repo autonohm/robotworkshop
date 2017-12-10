@@ -13,22 +13,18 @@
 
 using namespace std;
 
-Motorcontroller::Motorcontroller(MotorParams params,
-                                 float kp,
-                                 float ki,
-                                 float kd,
-                                 int antiWindup)
+Motorcontroller::Motorcontroller(MotorParams params)
 {
   _rpmMax       = params.rpmMax;
   _gearRatio    = params.gearRatio;
   _encoderRatio = params.encoderRatio;
-  _antiWindup   = antiWindup;
+  _antiWindup   = params.antiWindup;
+  _kp           = params.kp;
+  _ki           = params.ki;
+  _kd           = params.kd;
 
   cout << "Maximum RPM: " << _rpmMax << endl;
-
-  _kp = kp;
-  _ki = ki;
-  _kd = kd;
+  cout << _kp << " " << _ki << " " << _kd << endl;
 
   _baud         = B115200;
   _comPort      = "/dev/ttyACM0";
