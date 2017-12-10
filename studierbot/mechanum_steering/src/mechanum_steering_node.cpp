@@ -6,22 +6,25 @@
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "mechanum_steering_node");
-  MotorParams mParams(Faulhaber_16002);
+  ChassisParams chassisParams;
+  MotorParams motorParams(Faulhaber_16002);
 
   // Assign motor channels to motor/wheel mounting
   ros::NodeHandle nh("~");
 
-  ChannelMap chMap;
-  nh.param("chFrontLeft",  chMap.frontLeft,    0);
-  nh.param("chFrontRight", chMap.frontRight,   1);
-  nh.param("chRearLeft",   chMap.rearLeft,     2);
-  nh.param("chRearRight",  chMap.rearRight,    3);
-  nh.param("direction",    chMap.direction,    1);
-  nh.param("kp",           mParams.kp,         1.f);
-  nh.param("ki",           mParams.ki,         0.f);
-  nh.param("kd",           mParams.kd,         0.f);
-  nh.param("antiWindup",   mParams.antiWindup, 1);
+  nh.param("track",         chassisParams.track,         0.3f);
+  nh.param("wheelBase",     chassisParams.wheelBase,     0.3f);
+  nh.param("wheelDiameter", chassisParams.wheelDiameter, 0.1f);
+  nh.param("chFrontLeft",   chassisParams.frontLeft,     0);
+  nh.param("chFrontRight",  chassisParams.frontRight,    1);
+  nh.param("chRearLeft",    chassisParams.rearLeft,      2);
+  nh.param("chRearRight",   chassisParams.rearRight,     3);
+  nh.param("direction",     chassisParams.direction,     1);
+  nh.param("kp",            motorParams.kp,              1.f);
+  nh.param("ki",            motorParams.ki,              0.f);
+  nh.param("kd",            motorParams.kd,              0.f);
+  nh.param("antiWindup",    motorParams.antiWindup,      1);
 
-  MechanumSteering robot(&mParams, chMap);
+  MechanumSteering robot(chassisParams, &motorParams);
   robot.run();
 }

@@ -7,6 +7,34 @@
 #include "protocol.h"
 #include "control.h"
 
+struct ChassisParams
+{
+  float track;
+  float wheelBase;
+  float wheelDiameter;
+  int   frontLeft;
+  int   frontRight;
+  int   centerLeft;
+  int   centerRight;
+  int   rearLeft;
+  int   rearRight;
+  int   direction;
+
+  ChassisParams()
+  {
+    track         = 0.f;
+    wheelBase     = 0.f;
+    wheelDiameter = 0.f;
+    frontLeft     = 0;
+    frontRight    = 0;
+    centerLeft    = 0;
+    centerRight   = 0;
+    rearLeft      = 0;
+    rearRight     = 0;
+    direction     = 0;
+  }
+};
+
 enum MotorType {Pololu_Gearmotor_25D, Pololu_Gearmotor_37D, Faulhaber_16002};
 struct MotorParams
 {
@@ -64,28 +92,6 @@ struct MotorParams
     ki = p.ki;
     kd = p.kd;
     antiWindup = p.antiWindup;
-  }
-};
-
-struct ChannelMap
-{
-  int frontLeft;
-  int frontRight;
-  int centerLeft;
-  int centerRight;
-  int rearLeft;
-  int rearRight;
-  int direction;
-
-  ChannelMap()
-  {
-    frontLeft     = 0;
-    frontRight    = 0;
-    centerLeft    = 0;
-    centerRight   = 0;
-    rearLeft      = 0;
-    rearRight     = 0;
-    direction     = 0;
   }
 };
 

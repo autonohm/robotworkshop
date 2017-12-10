@@ -1,5 +1,8 @@
 <launch>
   <node pkg="skid_steering" type="skid_steering_node" name="skid_steering_node" output="screen">
+    <param name="track"        value="0.28"/>
+    <param name="wheelBase"    value="0.0"/>
+    <param name="wheelDiameter value="0.06"/>
     <param name="chFrontLeft"   value="0"/>
     <param name="chFrontRight"  value="1"/>
     <param name="chCenterLeft"  value="2"/>

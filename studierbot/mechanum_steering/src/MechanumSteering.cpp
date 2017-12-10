@@ -1,23 +1,22 @@
 #include <iostream>
 
 #include "../../mechanum_steering/src/MechanumSteering.h"
-#include "../../mechanum_steering/src/params.h"
 
 using namespace std;
 
-MechanumSteering::MechanumSteering(MotorParams* params, ChannelMap map)
+MechanumSteering::MechanumSteering(ChassisParams chParams, MotorParams* mParams)
 {
-  _params = new MotorParams(*params);
-  _channelMap = map;
+  _mParams = new MotorParams(*mParams);
+  _chParams = chParams;
   // ensure that the direction parameter is set properly (either 1 or -1)
-  if(_channelMap.direction>0) _channelMap.direction = 1;
-  else _channelMap.direction = -1;
+  if(_chParams.direction>0) _chParams.direction = 1;
+  else _chParams.direction = -1;
 
-  _motor  = new Motorcontroller(*_params);
+  _motor  = new Motorcontroller(*_mParams);
 
-  _leverage         = sqrt(WHEELBASE*WHEELBASE+TRACK*TRACK)/2.0;
-  _tangentialFactor = 1.0/cos(atan2(WHEELBASE, TRACK)-(M_PI/4.0));
-  _ms2rpm           = 60.0/(WHEELDIAMETER*M_PI);
+  _leverage         = sqrt(chParams.wheelBase*chParams.wheelBase+chParams.track*chParams.track)/2.0;
+  _tangentialFactor = 1.0/cos(atan2(chParams.wheelBase, chParams.track)-(M_PI/4.0));
+  _ms2rpm           = 60.0/(chParams.wheelDiameter*M_PI);
   _rpm2ms           = 1.0 / _ms2rpm;
   _vMax             = _motor->getRPMMax() * _rpm2ms * sin(M_PI/4.0);
   _omegaMax         = _vMax / (_tangentialFactor * _leverage);
@@ -38,7 +37,7 @@ MechanumSteering::MechanumSteering(MotorParams* params, ChannelMap map)
 MechanumSteering::~MechanumSteering()
 {
   delete _motor;
-  delete _params;
+  delete _mParams;
 }
 
 void MechanumSteering::run()
@@ -100,15 +99,15 @@ void MechanumSteering::normalizeAndMap(float vFwd, float vLeft, float omega)
   //cout << "vFwd: " << vFwd << "m/s, vLeft: " << vLeft << "m/s, omega: " << omega << endl;
   //cout << "rpmFwd: " << rpmFwd << ", rpmLeft: " << rpmLeft << ", rpmOmega: " << rpmOmega << endl;
 
-  _rpm[_channelMap.frontLeft]  = rpmFwd - rpmLeft - rpmOmega;
-  _rpm[_channelMap.rearLeft]   = rpmFwd + rpmLeft - rpmOmega;
-  _rpm[_channelMap.frontRight] = rpmFwd + rpmLeft + rpmOmega;
-  _rpm[_channelMap.rearRight]  = rpmFwd - rpmLeft + rpmOmega;
+  _rpm[_chParams.frontLeft]  = rpmFwd - rpmLeft - rpmOmega;
+  _rpm[_chParams.rearLeft]   = rpmFwd + rpmLeft - rpmOmega;
+  _rpm[_chParams.frontRight] = rpmFwd + rpmLeft + rpmOmega;
+  _rpm[_chParams.rearRight]  = rpmFwd - rpmLeft + rpmOmega;
 
-  _rpm[0] *= _channelMap.direction;
-  _rpm[1] *= _channelMap.direction;
-  _rpm[2] *= _channelMap.direction;
-  _rpm[3] *= _channelMap.direction;
+  _rpm[0] *= _chParams.direction;
+  _rpm[1] *= _chParams.direction;
+  _rpm[2] *= _chParams.direction;
+  _rpm[3] *= _chParams.direction;
 
   // remap direction due to motor mounting (flip direction of left side)
   _rpm[0] = -_rpm[0];
@@ -118,12 +117,12 @@ void MechanumSteering::normalizeAndMap(float vFwd, float vLeft, float omega)
   float rpmMax = std::abs(_rpm[0]);
   for(int i=1; i<4; i++)
   {
-    if(std::abs(_rpm[i]) > _params->rpmMax)
+    if(std::abs(_rpm[i]) > _mParams->rpmMax)
       rpmMax = std::abs(_rpm[i]);
   }
-  if(rpmMax > _params->rpmMax)
+  if(rpmMax > _mParams->rpmMax)
   {
-    float factor = _params->rpmMax / rpmMax;
+    float factor = _mParams->rpmMax / rpmMax;
     for(int i=0; i<4; i++)
       _rpm[i] *= factor;
   }

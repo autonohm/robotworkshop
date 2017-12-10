@@ -21,10 +21,10 @@ public:
 
   /**
    * Standard Constructor
-   * @params[in] params motor parameters
-   * @params[in] map map for assigning channels to position of wheels
+   * @params[in] chParams chassis parameters, including the map for assigning channels to position of wheels
+   * @params[in] mParams motor parameters
    */
-  MechanumSteering(MotorParams* params, ChannelMap map);
+  MechanumSteering(ChassisParams chParams, MotorParams* mParams);
 
   /**
    * Destructor
@@ -62,9 +62,9 @@ private:
   ros::Subscriber _joySub;
   ros::Subscriber _velSub;
 
+  ChassisParams    _chParams;
+  MotorParams*     _mParams;
   Motorcontroller* _motor;
-  MotorParams*     _params;
-  ChannelMap       _channelMap;
 
   // revolutions per minute for each channel (only 4 of 6 channels are used)
   float _rpm[6];

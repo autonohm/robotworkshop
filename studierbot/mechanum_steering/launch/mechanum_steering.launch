@@ -1,5 +1,8 @@
 <launch>
   <node pkg="mechanum_steering" type="mechanum_steering_node" name="mechanum_steering_node" output="screen">
+    <param name="track"        value="0.3"/>
+    <param name="wheelBase"    value="0.3"/>
+    <param name="wheelDiameter value="0.1"/>
     <param name="chFrontLeft"  value="0"/>
     <param name="chFrontRight" value="1"/>
     <param name="chRearLeft"   value="2"/>

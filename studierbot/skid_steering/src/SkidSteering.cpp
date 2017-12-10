@@ -1,18 +1,17 @@
 #include <iostream>
 
 #include "../../skid_steering/src/SkidSteering.h"
-#include "../../skid_steering/src/params.h"
 
 using namespace std;
 
-SkidSteering::SkidSteering(MotorParams params, ChannelMap map)
+SkidSteering::SkidSteering(ChassisParams chParams, MotorParams params)
 {
   _motor = new Motorcontroller(params);
-  _channelMap = map;
+  _chParams = chParams;
 
-  _track                = TRACK;
-  _pinionCircumference  = PINIONCIRCUMFERENCE;
-  _vMax                 = _motor->getRPMMax() * PINIONCIRCUMFERENCE / 60.f;
+  _track                = _chParams.track;
+  _pinionCircumference  = _chParams.wheelDiameter * M_PI;
+  _vMax                 = _motor->getRPMMax() * _pinionCircumference / 60.f;
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &SkidSteering::joyCallback,      this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &SkidSteering::velocityCallback, this);
@@ -50,12 +49,12 @@ void SkidSteering::run()
     {
       float rpmLeft  = trackspeedToRPM(_vl);
       float rpmRight = trackspeedToRPM(_vr);
-      if(_channelMap.frontLeft   >= 0)  _rpm[_channelMap.frontLeft]   = rpmLeft;
-      if(_channelMap.centerLeft  >= 0)  _rpm[_channelMap.centerLeft]  = rpmLeft;
-      if(_channelMap.rearLeft    >= 0)  _rpm[_channelMap.rearLeft]    = rpmLeft;
-      if(_channelMap.frontRight  >= 0)  _rpm[_channelMap.frontRight]  = rpmRight;
-      if(_channelMap.centerRight >= 0)  _rpm[_channelMap.centerRight] = rpmRight;
-      if(_channelMap.rearRight   >= 0)  _rpm[_channelMap.rearRight]   = rpmRight;
+      if(_chParams.frontLeft   >= 0)  _rpm[_chParams.frontLeft]   = rpmLeft;
+      if(_chParams.centerLeft  >= 0)  _rpm[_chParams.centerLeft]  = rpmLeft;
+      if(_chParams.rearLeft    >= 0)  _rpm[_chParams.rearLeft]    = rpmLeft;
+      if(_chParams.frontRight  >= 0)  _rpm[_chParams.frontRight]  = rpmRight;
+      if(_chParams.centerRight >= 0)  _rpm[_chParams.centerRight] = rpmRight;
+      if(_chParams.rearRight   >= 0)  _rpm[_chParams.rearRight]   = rpmRight;
 
       //cout << _vl << " " << _vr << " " << _vMax << " " << rpmLeft << " " << rpmRight << endl;
       _motor->setRPM(_rpm);
