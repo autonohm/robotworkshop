@@ -27,8 +27,7 @@ Motorcontroller::Motorcontroller(MotorParams params)
   cout << _kp << " " << _ki << " " << _kd << endl;
 
   _baud         = B115200;
-  _comPort      = "/dev/ttyACM0";
-  _com = new SerialPort(_comPort.c_str(), _baud);
+  _com = new SerialPort(params.comPort.c_str(), _baud);
 
   init();
   stop();

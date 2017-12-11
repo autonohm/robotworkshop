@@ -7,26 +7,30 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "skid_steering_node");
 
   ChassisParams chParams;
-  MotorParams mParams(Pololu_Gearmotor_37D);
+  MotorParams motorParams;
 
   // Assign motor channels to motor/wheel mounting
   ros::NodeHandle nh("~");
 
-  nh.param("track",         chParams.track,         0.28f);
-  nh.param("wheelBase",     chParams.wheelBase,     0.0f);
-  nh.param("wheelDiameter", chParams.wheelDiameter, 0.06f);
-  nh.param("chFrontLeft",   chParams.frontLeft,        0);
-  nh.param("chFrontRight",  chParams.frontRight,       1);
-  nh.param("chCenterLeft",  chParams.rearLeft,         2);
-  nh.param("chCenterRight", chParams.rearRight,        3);
-  nh.param("chRearLeft",    chParams.rearLeft,         4);
-  nh.param("chRearRight",   chParams.rearRight,        5);
-  nh.param("direction",     chParams.direction,        1);
-  nh.param("kp",            mParams.kp,             1.f);
-  nh.param("ki",            mParams.ki,             0.f);
-  nh.param("kd",            mParams.kd,             0.f);
-  nh.param("antiWindup",    mParams.antiWindup,     1);
+  nh.param("track",         chParams.track,           0.28f);
+  nh.param("wheelBase",     chParams.wheelBase,       0.0f);
+  nh.param("wheelDiameter", chParams.wheelDiameter,   0.06f);
+  nh.param("chFrontLeft",   chParams.frontLeft,       0);
+  nh.param("chFrontRight",  chParams.frontRight,      1);
+  nh.param("chCenterLeft",  chParams.rearLeft,        2);
+  nh.param("chCenterRight", chParams.rearRight,       3);
+  nh.param("chRearLeft",    chParams.rearLeft,        4);
+  nh.param("chRearRight",   chParams.rearRight,       5);
+  nh.param("direction",     chParams.direction,       1);
+  nh.param("comPort",       motorParams.comPort,      std::string("/dev/ttyACM0"));
+  nh.param("gearRatio",     motorParams.gearRatio,    131.f);
+  nh.param("encoderRatio",  motorParams.encoderRatio, 64.f);
+  nh.param("rpmMax",        motorParams.rpmMax,       80.f);
+  nh.param("kp",            motorParams.kp,           1.f);
+  nh.param("ki",            motorParams.ki,           0.f);
+  nh.param("kd",            motorParams.kd,           0.f);
+  nh.param("antiWindup",    motorParams.antiWindup,   1);
 
-  SkidSteering robot(chParams, mParams);
+  SkidSteering robot(chParams, motorParams);
   robot.run();
 }

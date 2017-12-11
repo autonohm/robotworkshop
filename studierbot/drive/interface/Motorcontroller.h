@@ -35,47 +35,30 @@ struct ChassisParams
   }
 };
 
-enum MotorType {Pololu_Gearmotor_25D, Pololu_Gearmotor_37D, Faulhaber_16002};
 struct MotorParams
 {
-  float     gearRatio;
-  float     encoderRatio;
-  float     rpmMax;
-  float     kp;
-  float     ki;
-  float     kd;
-  int       antiWindup;
-  MotorType type;
+  std::string comPort;
+  float       gearRatio;
+  float       encoderRatio;
+  float       rpmMax;
+  float       kp;
+  float       ki;
+  float       kd;
+  int         antiWindup;
 
   /**
    * Standard constructor assigns default parameters
-   * @param[in] t motor type
    */
-  MotorParams(MotorType t)
+  MotorParams()
   {
-    type = t;
-    switch(type)
-    {
-    case Pololu_Gearmotor_25D:
-      gearRatio    = 99.f;
-      encoderRatio = 48.f;
-      rpmMax       = 76.f;
-      break;
-    case Pololu_Gearmotor_37D:
-      gearRatio    = 131.f;
-      encoderRatio = 64.f;
-      rpmMax       = 80.f;
-      break;
-    case Faulhaber_16002:
-      gearRatio    = 64.f;
-      encoderRatio = 48.f;
-      rpmMax       = 120.f;
-      break;
-    }
-    kp         = 1.f;
-    ki         = 0.f;
-    kd         = 0.f;
-    antiWindup = 1;
+    comPort      = std::string("/dev/ttyACM0");
+    gearRatio    = 0.f;
+    encoderRatio = 0.f;
+    rpmMax       = 0.f;
+    kp           = 1.f;
+    ki           = 0.f;
+    kd           = 0.f;
+    antiWindup   = 1;
   }
 
   /**
@@ -84,7 +67,6 @@ struct MotorParams
    */
   MotorParams(const MotorParams &p)
   {
-    type = p.type;
     gearRatio = p.gearRatio;
     encoderRatio = p.encoderRatio;
     rpmMax = p.rpmMax;
@@ -162,8 +144,6 @@ private:
   bool sendToMotorshieldI(char cmd, int param, bool echo);
   bool sendToMotorshieldF(char cmd, float param, bool echo);
 
-
-  std::string _comPort;
   speed_t _baud;
   char _bufCmd[14];
   char _bufResponse[13];
