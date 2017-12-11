@@ -20,7 +20,7 @@
          <param name="rpmMax"        value="80.0"/> -->
     
     <!-- 99:1 Metal Gearmotor 25Dx54L mm MP 12V with 48 CPR Encoder -->
-    <!-- <param name="gearRatio"     value="75.0"/>
+    <!-- <param name="gearRatio"     value="99.0"/>
          <param name="encoderRatio"  value="48.0"/>
          <param name="rpmMax"        value="76.0"/> -->
     
