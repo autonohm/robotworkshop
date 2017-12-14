@@ -54,7 +54,7 @@ private:
    * Normalize motion command and assign it to the channels
    * @param[in] vFwd forward velocity (x-axis)
    * @param[in] vLeft velocity to the left (y-axis)
-   * @param[in] omega angular velocity (arround z-axis)
+   * @param[in] omega angular velocity (around z-axis)
    */
   void normalizeAndMap(float vFwd, float vLeft, float omega);
 
