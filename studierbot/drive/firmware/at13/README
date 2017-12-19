@@ -1,0 +1,5 @@
+/**
+ * This source file is dedicated to the ATMEL TINY13 chip. It preprocesses the rotary encoder signals for the Freescale chip.
+ * Author: Stefan May
+ * Date:   19.12.2017
+ */
