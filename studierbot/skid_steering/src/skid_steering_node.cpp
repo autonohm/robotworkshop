@@ -17,8 +17,8 @@ int main(int argc, char** argv)
   nh.param("wheelDiameter", chParams.wheelDiameter,   0.06f);
   nh.param("chFrontLeft",   chParams.frontLeft,       0);
   nh.param("chFrontRight",  chParams.frontRight,      1);
-  nh.param("chCenterLeft",  chParams.rearLeft,        2);
-  nh.param("chCenterRight", chParams.rearRight,       3);
+  nh.param("chCenterLeft",  chParams.centerLeft,      2);
+  nh.param("chCenterRight", chParams.centerRight,     3);
   nh.param("chRearLeft",    chParams.rearLeft,        4);
   nh.param("chRearRight",   chParams.rearRight,       5);
   nh.param("direction",     chParams.direction,       1);
@@ -31,6 +31,7 @@ int main(int argc, char** argv)
   nh.param("kd",            motorParams.kd,           0.f);
   nh.param("antiWindup",    motorParams.antiWindup,   1);
 
-  SkidSteering robot(chParams, motorParams);
+  cout << "Com Port: " << motorParams.comPort << endl;
+  SkidSteering robot(&chParams, &motorParams);
   robot.run();
 }

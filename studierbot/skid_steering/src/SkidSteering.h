@@ -24,7 +24,7 @@ public:
    * @param[in] chParams chassis parameters, including the map for assigning channels to position of wheels
    * @param[in] mParams motor parameters
    */
-  SkidSteering(ChassisParams chParams, MotorParams mParams);
+  SkidSteering(ChassisParams* chParams, MotorParams* mParams);
 
   /**
    * Destructor
@@ -74,7 +74,7 @@ private:
   ros::Subscriber _joySub;
   ros::Subscriber _velSub;
 
-  ChassisParams    _chParams;
+  ChassisParams*   _chParams;
   Motorcontroller* _motor;
 
   // revolutions per minute for each channel (only 2 of 6 channels are used)
