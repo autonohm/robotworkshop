@@ -10,7 +10,7 @@
     <param name="wheelDiameter" value="0.12"/>
     
     <!-- Serial motor controller interface -->
-    <param name="comPort"       value="/dev/ttyACM3"/>
+    <param name="comPort"       value="/dev/frdm_dc_shield"/>
     
     <!-- Gearmotor/Encoder parameters -->
     <!-- Tested motors are: -->

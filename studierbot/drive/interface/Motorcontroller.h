@@ -51,7 +51,7 @@ struct MotorParams
    */
   MotorParams()
   {
-    comPort      = std::string("/dev/ttyACM0");
+    comPort      = std::string("/dev/frdm_dc_shield");
     gearRatio    = 0.f;
     encoderRatio = 0.f;
     rpmMax       = 0.f;
