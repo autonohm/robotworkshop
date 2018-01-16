@@ -20,7 +20,7 @@
 
 using namespace std;
 
-const char _comPort[] = "/dev/ttyACM0";
+const char _comPort[] = "/dev/frdm_dc_shield";
 const speed_t _baud = B115200;
 
 /**
@@ -29,24 +29,26 @@ const speed_t _baud = B115200;
  * Pololu  99:1 Metal Gearmotor 25Dx54L mm MP 12V with 48 CPR Encoder, Pololu item#: 3243
  */
 #define POLOLU_GEARMOTOR_37D 1
+#define FAULHABER_16002 1
 
 #if POLOLU_GEARMOTOR_37D
 #define GEARRATIO 131.f
-#define ENCODERTICKSPERREV 16.f
-#define RPMMAX 80
+#define ENCODERTICKSPERREV 64.f
+#elif FAULHABER_16002
+#define GEARRATIO 64.f
+#define ENCODERTICKSPERREV 48.f
 #else
 #define GEARRATIO 99.f
 #define ENCODERTICKSPERREV 48.f
-#define RPMMAX 76
 #endif
 
 /**
  * PID controller parameter
  */
-#define _KP 0.0f
-#define _KI 1.f
+#define _KP 2.0f
+#define _KI 20.f
 #define _KD 0.f
-#define ANTIWINDUP 0
+#define ANTIWINDUP 1
 #define EULER 0 //Use of Euler method, instead of classic PID controller
 
 #define _INPUTSINE 0

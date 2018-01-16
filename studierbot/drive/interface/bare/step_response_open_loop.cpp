@@ -20,7 +20,7 @@
 
 using namespace std;
 
-const char _comPort[] = "/dev/ttyACM0";
+const char _comPort[] = "/dev/frdm_dc_shield";
 const speed_t _baud = B115200;
 
 /**
@@ -28,11 +28,15 @@ const speed_t _baud = B115200;
  * Pololu 131:1 Metal Gearmotor 37Dx57L mm with 64 CPR Encoder,        Pololu item#: 1447
  * Pololu  99:1 Metal Gearmotor 25Dx54L mm MP 12V with 48 CPR Encoder, Pololu item#: 3243
  */
-#define POLOLU_GEARMOTOR_37D 0
+#define POLOLU_GEARMOTOR_37D 1
+#define FAULHABER_16002 1
 
 #if POLOLU_GEARMOTOR_37D
 #define GEARRATIO 131.f
 #define ENCODERTICKSPERREV 64.f
+#elif FAULHABER_16002
+#define GEARRATIO 64.f
+#define ENCODERTICKSPERREV 48.f
 #else
 #define GEARRATIO 99.f
 #define ENCODERTICKSPERREV 48.f
