@@ -1,5 +1,5 @@
 <launch>
-  <node pkg="mechanum_steering" type="mechanum_steering_node" name="mechanum_steering_node" output="screen">
+  <node pkg="skid_steering" type="skid_steering_node" name="skid_steering_node" output="screen">
     <!-- Distance between wheel/track contact points of left and right side -->
     <param name="track"         value="0.28"/>
     
@@ -10,7 +10,7 @@
     <param name="wheelDiameter" value="0.12"/>
     
     <!-- Serial motor controller interface -->
-    <param name="comPort"       value="/dev/ttyACM0"/>
+    <param name="comPort"       value="/dev/ttyACM3"/>
     
     <!-- Gearmotor/Encoder parameters -->
     <!-- Tested motors are: -->
@@ -29,13 +29,13 @@
          <param name="encoderRatio"  value="48.0"/>
          <param name="rpmMax"        value="120.0"/> -->
     
-    <!-- Channel assignement to motor mounting -->
-    <param name="chFrontLeft"   value="0"/>
-    <param name="chFrontRight"  value="1"/>
-    <param name="chCenterLeft"  value="2"/>
-    <param name="chCenterRight" value="3"/>
-    <param name="chRearLeft"    value="4"/>
-    <param name="chRearRight"   value="5"/>
+    <!-- Channel assignment to motor mounting -->
+    <param name="chFrontLeft"   value="3"/>
+    <param name="chFrontRight"  value="2"/>
+    <param name="chCenterLeft"  value="5"/>
+    <param name="chCenterRight" value="4"/>
+    <param name="chRearLeft"    value="1"/>
+    <param name="chRearRight"   value="0"/>
     
     <!-- Polarity parameter, accepted values are 1 and -1. -->
     <!-- With this parameter the direction of rotation can be reversed -->  
