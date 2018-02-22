@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 
   if(argc<2)
   {
-    cout << "usage: " << argv[0] << " <rpm> [rpm 2] [rpm 3] [rpm 4] [rpm 5] [rpm 6]" << endl;
+    cout << "usage: " << argv[0] << " <rpm> [rpm 2] [rpm 3] [rpm 4] [rpm 5] [rpm 6] [samples]" << endl;
     return 0;
   }
 
@@ -142,6 +142,10 @@ int main(int argc, char* argv[])
   if(argc>6)
     w[5] = atof(argv[6]);
 
+  int samples = 1500;
+  if(argc>7)
+    samples = atoi(argv[7]);
+
   _com = new SerialPort(_comPort, _baud);
 
   char  bufCmd[14];
@@ -152,12 +156,16 @@ int main(int argc, char* argv[])
   short responseS[6];
   bool  retval = false;
 
-  float gearRatio = GEARRATIO;
+  // Enable Motorcontroller
   while(!retval)
   {
-    sendToMotorshieldF(0x16, gearRatio, &responseF, true);
-    retval = (gearRatio==responseF);
+    sendToMotorshieldI(0x18, 1, &responseI, true);
+    retval = (responseI==1);
   }
+
+  float gearRatio = GEARRATIO;
+  sendToMotorshieldF(0x16, gearRatio, &responseF, true);
+
 
   float ticksPerRev = ENCODERTICKSPERREV;
   sendToMotorshieldF(0x17, ticksPerRev, &responseF, true);
@@ -207,7 +215,6 @@ int main(int argc, char* argv[])
   ::gettimeofday(&clk, 0);
   double t_start = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
-  int samples = 1500;
   short wsetBase[6];
   short wset[6];
   double wsetOffset[6];

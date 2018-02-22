@@ -28,56 +28,110 @@ const speed_t _baud = B115200;
  * Pololu 131:1 Metal Gearmotor 37Dx57L mm with 64 CPR Encoder,        Pololu item#: 1447
  * Pololu  99:1 Metal Gearmotor 25Dx54L mm MP 12V with 48 CPR Encoder, Pololu item#: 3243
  */
-#define POLOLU_GEARMOTOR_37D 1
-#define FAULHABER_16002 1
+#define POLOLU_GEARMOTOR_37D 0
+#define POLOLU_GEARMOTOR_25D 0
+#define FAULHABER_16002 0
 
 #if POLOLU_GEARMOTOR_37D
 #define GEARRATIO 131.f
 #define ENCODERTICKSPERREV 64.f
+#elif POLOLU_GEARMOTOR_25D
+#define GEARRATIO 99.f
+#define ENCODERTICKSPERREV 48.f
 #elif FAULHABER_16002
 #define GEARRATIO 64.f
 #define ENCODERTICKSPERREV 48.f
 #else
-#define GEARRATIO 99.f
-#define ENCODERTICKSPERREV 48.f
+#define GEARRATIO 14.f
+#define ENCODERTICKSPERREV 1024.f
 #endif
+
+SerialPort* _com;
+char _bufCmd[14];
+char _bufIn[13];
+
+/**
+ * Send float commands to motor shield
+ * @param cmd command byte
+ * @param param parameter
+ * @param response response of motor controller
+ * @param echo verbosity of function, true provides command line output
+ */
+template<typename T>
+bool sendToMotorshield(char cmd, T param, T* response, bool echo)
+{
+  _bufCmd[0] = cmd;
+  convertTo12ByteArray(param, &_bufCmd[1]);
+
+  int  sent   = _com->send(_bufCmd, 14);
+  bool retval = _com->receive(_bufIn, 13);
+  convertFromByteArray(_bufIn, *response);
+
+  if(echo)
+  {
+    cout << "Sent " << param << ", echo: " << *response << endl;
+  }
+
+  return retval;
+}
+
+bool sendToMotorshieldF(char cmd, float param, float* response, bool echo)
+{
+  _bufCmd[13] = 'F';
+  return sendToMotorshield<float>(cmd, param, response, echo);
+}
+
+bool sendToMotorshieldI(char cmd, int param, int* response, bool echo)
+{
+  _bufCmd[13] = 'I';
+  return sendToMotorshield<int>(cmd, param, response, echo);
+}
+
+bool sendToMotorshieldS(char cmd, short param[6], short (*response)[6], bool echo)
+{
+  _bufCmd[13] = 'S';
+  bool retval = sendToMotorshield<short[6]>(cmd, param, response, false);
+  if(echo)
+  {
+    short check[6];
+    convertFromByteArray(_bufIn, check);
+    cout << "Sent " << param[0] << " / " << param[1] << " / " << param[2] << " / " << param[3] << " / " << param[4] << " / " << param[5]
+         << ", echo: " << check[0] << " / " << check[1] << " / " << check[2] << " / " << check[3] << " / " << check[4] << " / " << check[5] << endl;
+  }
+  return retval;
+}
 
 int main(int argc, char* argv[])
 {
  
   if(argc<2)
   {
-    cout << "usage: " << argv[0] << " <pwm ratio> [pwm ratio 2] [pwm ratio 3] [pwm ratio 4] [pwm ratio 5] [pwm ratio 6]" << endl;
+    cout << "usage: " << argv[0] << " <pwm ratio> [pwm ratio 2] [pwm ratio 3] [pwm ratio 4] [pwm ratio 5] [pwm ratio 6] [samples]" << endl;
     return 0;
   }
 
-  SerialPort* com = new SerialPort(_comPort, _baud);
-  char bufCmd[14];
-  char bufResponse[13];
+  _com = new SerialPort(_comPort, _baud);
 
   bool  retval = false;
   float responseF;
-  float gearRatio = GEARRATIO;
+  int   responseI;
+  short responseS[6];
+
+  // Enable Motorcontroller
   while(!retval)
   {
-    bufCmd[0] = 0x16;
-    bufCmd[13] = 'F';
-    convertTo12ByteArray(gearRatio, &bufCmd[1]);
-    int  sent   = com->send(bufCmd, 14);
-    retval = com->receive(bufResponse, 13);
-    convertFromByteArray(bufResponse, responseF);
-    retval = (gearRatio==responseF);
+    sendToMotorshieldI(0x18, 1, &responseI, true);
+    retval = (responseI==1);
   }
-  cout << "Gear ratio: " << gearRatio << endl;
+
+  float t1 = 0.5f;
+  sendToMotorshieldF(0x19, t1, &responseF, true);
+
+  float gearRatio = GEARRATIO;
+  sendToMotorshieldF(0x16, gearRatio, &responseF, true);
 
   float ticksPerRev = ENCODERTICKSPERREV;
-  bufCmd[0] = 0x17;
-  convertTo12ByteArray(ticksPerRev, &bufCmd[1]);
-  int  sent   = com->send(bufCmd, 14);
-  retval = com->receive(bufResponse, 13);
-  convertFromByteArray(bufResponse, responseF);
-  retval = (ticksPerRev==responseF);
-  cout << "Ticks per Revolution: " << ticksPerRev << endl;
+  sendToMotorshieldF(0x17, ticksPerRev, &responseF, true);
 
   vector<float> vTimestamp;
   vector<float> vU;  // set value
@@ -85,11 +139,8 @@ int main(int argc, char* argv[])
   vector<float> vV2; // response Motor2
   vector<float> vV3; // response Motor3
   vector<float> vV4; // response Motor4
-  vector<float> vV5; // response Motor4
-  vector<float> vV6; // response Motor4
-
-  bufCmd[0] = 0x00;
-  bufCmd[13] = 'S';
+  vector<float> vV5; // response Motor5
+  vector<float> vV6; // response Motor6
 
   short inc = 1;
   short val = 0;
@@ -98,7 +149,7 @@ int main(int argc, char* argv[])
   ::gettimeofday(&clk, 0);
   double t_start = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
-  short samples = 15000;
+  long samples = 1500;
   short u[6]    = {0, 0, 0, 0, 0, 0};
   u[0] = atoi(argv[1]);
   if(u[0]>100)  u[0] =  100;
@@ -129,7 +180,10 @@ int main(int argc, char* argv[])
   if(u[5]>100)  u[5] =  100;
   if(u[5]<-100) u[5] = -100;
 
-  for(short i=0; i<samples; i++)
+  if(argc>7)
+    samples = atol(argv[7]);
+
+  for(long i=0; i<samples; i++)
   {
     if(i>0.9*samples)
     {
@@ -141,32 +195,21 @@ int main(int argc, char* argv[])
       u[5] = 0;
     }
 
-    convertTo12ByteArray(u, &bufCmd[1]);
+    bool retval = sendToMotorshieldS(0x00, u, &responseS, true);
 
-    int sent = com->send(bufCmd, 14);
-
-    bool retval = com->receive(bufResponse, 13);
-
-    if(retval & (bufResponse[12]=='S'))
+    if(retval)
     {
-      short rpm1 = ((bufResponse[0]  << 8) & 0xFF00) | (bufResponse[1]  & 0x00FF);
-      short rpm2 = ((bufResponse[2]  << 8) & 0xFF00) | (bufResponse[3]  & 0x00FF);
-      short rpm3 = ((bufResponse[4]  << 8) & 0xFF00) | (bufResponse[5]  & 0x00FF);
-      short rpm4 = ((bufResponse[6]  << 8) & 0xFF00) | (bufResponse[7]  & 0x00FF);
-      short rpm5 = ((bufResponse[8]  << 8) & 0xFF00) | (bufResponse[9]  & 0x00FF);
-      short rpm6 = ((bufResponse[10] << 8) & 0xFF00) | (bufResponse[11] & 0x00FF);
-
       ::gettimeofday(&clk, 0);
       double t_now = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
       vTimestamp.push_back(t_now-t_start);
       vU.push_back(u[0]);
-      vV.push_back(((float)rpm1)/VALUESCALE);
-      vV2.push_back(((float)rpm2)/VALUESCALE);
-      vV3.push_back(((float)rpm3)/VALUESCALE);
-      vV4.push_back(((float)rpm4)/VALUESCALE);
-      vV5.push_back(((float)rpm5)/VALUESCALE);
-      vV6.push_back(((float)rpm6)/VALUESCALE);
+      vV.push_back(((float)responseS[0])/VALUESCALE);
+      vV2.push_back(((float)responseS[1])/VALUESCALE);
+      vV3.push_back(((float)responseS[2])/VALUESCALE);
+      vV4.push_back(((float)responseS[3])/VALUESCALE);
+      vV5.push_back(((float)responseS[4])/VALUESCALE);
+      vV6.push_back(((float)responseS[5])/VALUESCALE);
     }
     else
       cout << "failed to receive" << endl;
@@ -216,5 +259,5 @@ int main(int argc, char* argv[])
 
   cout << "files written to: " << filenameInput << " and " << filenameOutput << endl;
 
-  delete com;
+  delete _com;
 }
