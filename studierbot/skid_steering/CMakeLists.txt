@@ -106,9 +106,11 @@ include_directories(
 add_executable(skid_steering_node
  src/skid_steering_node.cpp
  src/SkidSteering.cpp
-  ../drive/interface/Motorcontroller.cpp 
- ../drive/interface/control.cpp
- ../drive/interface/SerialPort.cpp
+  ../drive/interface/MotorController.cpp
+  ../drive/interface/MotorControllerCAN.cpp
+  ../drive/interface/MotorControllerSerial.cpp 
+  ../drive/interface/control.cpp
+  ../drive/interface/SerialPort.cpp
 )
 
 ## Add cmake target dependencies of the executable/library

@@ -29,6 +29,6 @@ int main(int argc, char** argv)
   nh.param("kd",            motorParams.kd,              0.f);
   nh.param("antiWindup",    motorParams.antiWindup,      1);
 
-  MechanumSteering robot(chassisParams, &motorParams);
+  MechanumSteering robot(chassisParams, motorParams);
   robot.run();
 }

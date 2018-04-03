@@ -4,15 +4,16 @@
 
 using namespace std;
 
-MechanumSteering::MechanumSteering(ChassisParams chParams, MotorParams* mParams)
+MechanumSteering::MechanumSteering(ChassisParams &chParams, MotorParams &mParams)
 {
-  _mParams = new MotorParams(*mParams);
+  _mParams  = new MotorParams(mParams);
   _chParams = chParams;
   // ensure that the direction parameter is set properly (either 1 or -1)
   if(_chParams.direction>0) _chParams.direction = 1;
   else _chParams.direction = -1;
 
-  _motor  = new Motorcontroller(*_mParams);
+  //_motor  = new MotorControllerSerial(*_mParams);
+  _motor  = new MotorControllerCAN(*_mParams);
 
   _leverage         = sqrt(chParams.wheelBase*chParams.wheelBase+chParams.track*chParams.track)/2.0;
   _tangentialFactor = 1.0/cos(atan2(chParams.wheelBase, chParams.track)-(M_PI/4.0));

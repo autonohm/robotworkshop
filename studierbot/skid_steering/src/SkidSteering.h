@@ -6,7 +6,7 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../drive/interface/Motorcontroller.h"
+#include "../../drive/interface/MotorControllerSerial.h"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ public:
    * @param[in] chParams chassis parameters, including the map for assigning channels to position of wheels
    * @param[in] mParams motor parameters
    */
-  SkidSteering(ChassisParams* chParams, MotorParams* mParams);
+  SkidSteering(ChassisParams &chParams, MotorParams &mParams);
 
   /**
    * Destructor
@@ -70,29 +70,29 @@ private:
    */
   void velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd);
 
-  ros::NodeHandle _nh;
-  ros::Subscriber _joySub;
-  ros::Subscriber _velSub;
+  ros::NodeHandle        _nh;
+  ros::Subscriber        _joySub;
+  ros::Subscriber        _velSub;
 
-  ChassisParams*   _chParams;
-  Motorcontroller* _motor;
+  ChassisParams          _chParams;
+  MotorControllerSerial* _motor;
 
   // revolutions per minute for each channel (only 2 of 6 channels are used)
-  float _rpm[6];
+  float                  _rpm[6];
 
-  float _vl, _vr;
+  float                  _vl, _vr;
 
   // maximum velocity [m/s]
-  float _vMax;
+  float                  _vMax;
 
   // distance of tracks
-  float _track;
+  float                  _track;
 
   // circumference of pinion
-  float _pinionCircumference;
+  float                  _pinionCircumference;
 
   // time elapsed since last call
-  ros::Time _lastCmd;
+  ros::Time              _lastCmd;
 };
 
 #endif

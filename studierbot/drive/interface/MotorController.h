@@ -3,7 +3,6 @@
 
 #include <string>
 
-#include "SerialPort.h"
 #include "protocol.h"
 #include "control.h"
 
@@ -78,11 +77,11 @@ struct MotorParams
 };
 
 /**
- * @class Motorcontroller
+ * @class MotorController
  * @author Stefan May
  * @date 31.05.2014
  */
-class Motorcontroller
+class MotorController
 {
 
 public:
@@ -91,18 +90,18 @@ public:
    * Constructor
    * @param[in] params gear motor parameters, PID controller parameters
    */
-  Motorcontroller(MotorParams params);
+  MotorController(MotorParams &params);
 
   /**
    * Destructor
    */
-  virtual ~Motorcontroller();
+  virtual ~MotorController();
 
   /**
    * Get maximum revolutions per minute
    * @return maximum rpm
    */
-  float getRPMMax();
+  float getRPMMax() const;
 
   /**
    * Get ratio of gearbox
@@ -114,52 +113,29 @@ public:
    * Set revolutions per minute
    * @param[in] rpm 6-channel rpm value
    */
-  void setRPM(float rpm[6]);
+  virtual void setRPM(float rpm[6]) = 0;
 
   /**
    * Get revolutions per minute
    * param[in] idx motor index
    * @return rpm
    */
-  float getRPM(unsigned int idx);
+  virtual float getRPM(unsigned int idx) = 0;
 
   /**
    * Stop motors
    */
-  void stop();
+  virtual void stop() = 0;
 
-private:
+protected:
 
-  void init();
-
-  /**
-   * Send commands to motor shield
-   * @param[in] cmd command byte
-   * @param[in] param parameter
-   * @param[in] echo verbosity of function, true provides command line output
-   */
-  template<typename T>
-  bool sendToMotorshield(char cmd, T param, bool echo);
-  bool sendToMotorshieldS(char cmd, short param[2], bool echo);
-  bool sendToMotorshieldI(char cmd, int param, bool echo);
-  bool sendToMotorshieldF(char cmd, float param, bool echo);
-
-  speed_t _baud;
-  char _bufCmd[14];
-  char _bufResponse[13];
-  SerialPort* _com;
-
-  int _stopState;
   float _rpmMax;
   float _gearRatio;
   float _encoderRatio;
-  short _rpm[6];
-
   float _kp;
   float _ki;
   float _kd;
   int   _antiWindup;
-
 };
 
 #endif /* MOTORCONTROLLER_H_ */

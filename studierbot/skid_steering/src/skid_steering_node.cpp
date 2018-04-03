@@ -7,7 +7,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "skid_steering_node");
 
   ChassisParams chParams;
-  MotorParams motorParams;
+  MotorParams   motorParams;
 
   // Assign motor channels to motor/wheel mounting
   ros::NodeHandle nh("~");
@@ -32,6 +32,6 @@ int main(int argc, char** argv)
   nh.param("antiWindup",    motorParams.antiWindup,   1);
 
   cout << "Com Port: " << motorParams.comPort << endl;
-  SkidSteering robot(&chParams, &motorParams);
+  SkidSteering robot(chParams, motorParams);
   robot.run();
 }

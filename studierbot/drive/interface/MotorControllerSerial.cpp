@@ -1,40 +1,20 @@
-#include "Motorcontroller.h"
-
-#include <unistd.h>
-
-#include <termios.h>
-#include <errno.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include "MotorControllerSerial.h"
+#include <iostream>
 #include <cmath>
 
-#include <iostream>
-
-using namespace std;
-
-Motorcontroller::Motorcontroller(MotorParams params)
+MotorControllerSerial::MotorControllerSerial(MotorParams &params) : MotorController(params)
 {
-  _rpmMax       = params.rpmMax;
-  _gearRatio    = params.gearRatio;
-  _encoderRatio = params.encoderRatio;
-  _antiWindup   = params.antiWindup;
-  _kp           = params.kp;
-  _ki           = params.ki;
-  _kd           = params.kd;
 
-  cout << "Maximum RPM: " << _rpmMax << endl;
-  cout << _kp << " " << _ki << " " << _kd << endl;
-
-  _baud         = B115200;
-  _com = new SerialPort(params.comPort.c_str(), _baud);
+  _baud = B115200;
+  _com  = new SerialPort(params.comPort.c_str(), _baud);
 
   init();
   stop();
 }
 
+
 template<typename T>
-bool Motorcontroller::sendToMotorshield(char cmd, T param, bool echo)
+bool MotorControllerSerial::sendToMotorshield(char cmd, T param, bool echo)
 {
   _bufCmd[0] = cmd;
   convertTo12ByteArray(param, &_bufCmd[1]);
@@ -45,25 +25,25 @@ bool Motorcontroller::sendToMotorshield(char cmd, T param, bool echo)
   {
     T check;
     convertFromByteArray(_bufResponse, check);
-    cout << "Sent " << param << ", echo: " << check << endl;
+    std::cout << "Sent " << param << ", echo: " << check << std::endl;
   }
 
   return retval;
 }
 
-bool Motorcontroller::sendToMotorshieldF(char cmd, float param, bool echo)
+bool MotorControllerSerial::sendToMotorshieldF(char cmd, float param, bool echo)
 {
   _bufCmd[13] = 'F';
   return sendToMotorshield<float>(cmd, param, echo);
 }
 
-bool Motorcontroller::sendToMotorshieldI(char cmd, int param, bool echo)
+bool MotorControllerSerial::sendToMotorshieldI(char cmd, int param, bool echo)
 {
   _bufCmd[13] = 'I';
   return sendToMotorshield<int>(cmd, param, echo);
 }
 
-bool Motorcontroller::sendToMotorshieldS(char cmd, short param[6], bool echo)
+bool MotorControllerSerial::sendToMotorshieldS(char cmd, short param[6], bool echo)
 {
   _bufCmd[13] = 'S';
   bool retval = sendToMotorshield<short[6]>(cmd, param, false);
@@ -75,7 +55,7 @@ bool Motorcontroller::sendToMotorshieldS(char cmd, short param[6], bool echo)
   return retval;
 }
 
-void Motorcontroller::init()
+void MotorControllerSerial::init()
 {
   bool  retval = false;
   float responseF;
@@ -90,7 +70,7 @@ void Motorcontroller::init()
     convertFromByteArray(_bufResponse, responseF);
     retval = (_gearRatio==responseF);
   }
-  cout << "Gear ratio: " << _gearRatio << endl;
+  std::cout << "Gear ratio: " << _gearRatio << std::endl;
 
   retval = false;
 
@@ -111,22 +91,12 @@ void Motorcontroller::init()
   sendToMotorshieldI(0x15, _antiWindup, true);
 }
 
-Motorcontroller::~Motorcontroller()
+MotorControllerSerial::~MotorControllerSerial()
 {
   stop();
 }
 
-float Motorcontroller::getRPMMax()
-{
-  return _rpmMax;
-}
-
-float Motorcontroller::getGearRatio() const
-{
-  return _gearRatio;
-}
-
-void Motorcontroller::setRPM(float rpm[6])
+void MotorControllerSerial::setRPM(float rpm[6])
 {
   float rpmLargest = std::abs(rpm[0]);
   for(int i=1; i<6; i++)
@@ -164,15 +134,15 @@ void Motorcontroller::setRPM(float rpm[6])
     _rpm[5] = ((_bufResponse[10] << 8) & 0xFF00) | (_bufResponse[11] & 0x00FF);
   }
   else
-    cout << "failed to receive" << endl;
+    std::cout << "failed to receive" << std::endl;
 }
 
-float Motorcontroller::getRPM(unsigned int idx)
+float MotorControllerSerial::getRPM(unsigned int idx)
 {
   return ((float)_rpm[idx]) / (float)VALUESCALE;
 }
 
-void Motorcontroller::stop()
+void MotorControllerSerial::stop()
 {
   short wset[6] = {0, 0, 0, 0, 0, 0};
 

@@ -4,13 +4,13 @@
 
 using namespace std;
 
-SkidSteering::SkidSteering(ChassisParams* chParams, MotorParams* params)
+SkidSteering::SkidSteering(ChassisParams &chParams, MotorParams &params)
 {
 
-  _motor = new Motorcontroller(*params);
+  _motor = new MotorControllerSerial(params);
   _chParams = chParams;
-  _track                = _chParams->track;
-  _pinionCircumference  = _chParams->wheelDiameter * M_PI;
+  _track                = _chParams.track;
+  _pinionCircumference  = _chParams.wheelDiameter * M_PI;
   _vMax                 = _motor->getRPMMax() * _pinionCircumference / 60.f;
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &SkidSteering::joyCallback,      this);
@@ -49,12 +49,12 @@ void SkidSteering::run()
     {
       float rpmLeft  = trackspeedToRPM(_vl);
       float rpmRight = trackspeedToRPM(_vr);
-      if(_chParams->frontLeft   >= 0)  _rpm[_chParams->frontLeft]   = rpmLeft;
-      if(_chParams->centerLeft  >= 0)  _rpm[_chParams->centerLeft]  = rpmLeft;
-      if(_chParams->rearLeft    >= 0)  _rpm[_chParams->rearLeft]    = rpmLeft;
-      if(_chParams->frontRight  >= 0)  _rpm[_chParams->frontRight]  = rpmRight;
-      if(_chParams->centerRight >= 0)  _rpm[_chParams->centerRight] = rpmRight;
-      if(_chParams->rearRight   >= 0)  _rpm[_chParams->rearRight]   = rpmRight;
+      if(_chParams.frontLeft   >= 0)  _rpm[_chParams.frontLeft]   = rpmLeft;
+      if(_chParams.centerLeft  >= 0)  _rpm[_chParams.centerLeft]  = rpmLeft;
+      if(_chParams.rearLeft    >= 0)  _rpm[_chParams.rearLeft]    = rpmLeft;
+      if(_chParams.frontRight  >= 0)  _rpm[_chParams.frontRight]  = rpmRight;
+      if(_chParams.centerRight >= 0)  _rpm[_chParams.centerRight] = rpmRight;
+      if(_chParams.rearRight   >= 0)  _rpm[_chParams.rearRight]   = rpmRight;
 
       //cout << _vl << " " << _vr << " " << _vMax << " " << rpmLeft << " " << rpmRight << endl;
       _motor->setRPM(_rpm);

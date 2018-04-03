@@ -6,7 +6,8 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../drive/interface/Motorcontroller.h"
+#include "../../drive/interface/MotorControllerSerial.h"
+#include "../../drive/interface/MotorControllerCAN.h"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ public:
    * @params[in] chParams chassis parameters, including the map for assigning channels to position of wheels
    * @params[in] mParams motor parameters
    */
-  MechanumSteering(ChassisParams chParams, MotorParams* mParams);
+  MechanumSteering(ChassisParams &chParams, MotorParams &mParams);
 
   /**
    * Destructor
@@ -58,40 +59,37 @@ private:
    */
   void normalizeAndMap(float vFwd, float vLeft, float omega);
 
-  ros::NodeHandle _nh;
-  ros::Subscriber _joySub;
-  ros::Subscriber _velSub;
+  ros::NodeHandle        _nh;
+  ros::Subscriber        _joySub;
+  ros::Subscriber        _velSub;
 
-  ChassisParams    _chParams;
-  MotorParams*     _mParams;
-  Motorcontroller* _motor;
+  ChassisParams          _chParams;
+  MotorParams*           _mParams;
+  MotorController*       _motor;
 
   // revolutions per minute for each channel (only 4 of 6 channels are used)
-  float _rpm[6];
+  float                  _rpm[6];
 
   // maximum velocity [m/s]
-  float _vMax;
+  float                  _vMax;
 
   // maximum rotating rate [rad]
-  float _omegaMax;
+  float                  _omegaMax;
 
   // conversion from [m/s] to revolutions per minute [RPM]
-  float _ms2rpm;
+  float                  _ms2rpm;
 
   // conversion from revolutions per minute [RPM] to [m/s]
-  float _rpm2ms;
-
-  // distance of tracks
-  float _track;
+  float                  _rpm2ms;
 
   // leverage for rotational movement, i.e. distance between kinematic center and wheel contact point
-  float _leverage;
+  float                  _leverage;
 
   // correction factor to address non-quadratic chassis
-  float _tangentialFactor;
+  float                  _tangentialFactor;
 
   // time elapsed since last call
-  ros::Time _lastCmd;
+  ros::Time              _lastCmd;
 };
 
 #endif
