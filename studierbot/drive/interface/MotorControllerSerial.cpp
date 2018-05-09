@@ -96,6 +96,21 @@ MotorControllerSerial::~MotorControllerSerial()
   stop();
 }
 
+void MotorControllerSerial::setRPM(std::vector<float> rpm)
+{
+  int len = rpm.size() > 6 ? 6 : rpm.size();
+  float r[6];
+  r[0] = 0.f;
+  r[1] = 0.f;
+  r[2] = 0.f;
+  r[3] = 0.f;
+  r[4] = 0.f;
+  r[5] = 0.f;
+  for(int i=0; i<len; i++)
+    r[i] = rpm[i];
+  setRPM(r);
+}
+
 void MotorControllerSerial::setRPM(float rpm[6])
 {
   float rpmLargest = std::abs(rpm[0]);

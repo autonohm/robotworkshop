@@ -6,56 +6,35 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
-#include <linux/can.h>
-#include <linux/can/raw.h>
 
 MotorControllerCAN::MotorControllerCAN(MotorParams &params) : MotorController(params)
 {
-  init();
+  openPort("slcan0");
+  _cf.can_id  = 0x11F;
+  _cf.can_dlc = 3;
   stop();
 }
 
 MotorControllerCAN::~MotorControllerCAN()
 {
   stop();
+  closePort();
 }
 
-void MotorControllerCAN::init()
+void MotorControllerCAN::enable()
 {
-  openPort("slcan0");
+  _cf.data[0] = 0x01;
+  _cf.data[1] = 0x00;
+  _cf.data[2] = 0x00;
+  sendPort(&_cf);
+}
 
-  /*bool  retval = false;
-  float responseF;
-
-  while(!retval)
-  {
-    _bufCmd[0]  = 0x16;
-    _bufCmd[13] = 'F';
-    convertTo12ByteArray(_gearRatio, &_bufCmd[1]);
-    int sent = _com->send(_bufCmd, 14);
-    //retval = _com->receive(_bufResponse, 13);
-    //convertFromByteArray(_bufResponse, responseF);
-    retval = (_gearRatio==responseF);
-  }
-  std::cout << "Gear ratio: " << _gearRatio << std::endl;
-
-  retval = false;
-
-  while(!retval)
-  {
-    _bufCmd[0]  = 0x17;
-    _bufCmd[13] = 'F';
-    convertTo12ByteArray(_encoderRatio, &_bufCmd[1]);
-    int sent    = _com->send(_bufCmd, 14);
-    //retval      = _com->receive(_bufResponse, 13);
-    //convertFromByteArray(_bufResponse, responseF);
-    retval      = (_encoderRatio==responseF);
-  }*/
-
-  //sendToMotorshieldF(0x02, _kp, true);
-  //sendToMotorshieldF(0x03, _ki, true);
-  //sendToMotorshieldF(0x04, _kd, true);
-  //sendToMotorshieldI(0x15, _antiWindup, true);
+void MotorControllerCAN::setPWM(char pwm)
+{
+  _cf.data[0] = 0x10;
+  _cf.data[1] = pwm + 0x7F;
+  _cf.data[2] = pwm + 0x7F;
+  sendPort(&_cf);
 }
 
 void MotorControllerCAN::setRPM(float rpm[6])
@@ -129,7 +108,6 @@ int MotorControllerCAN::openPort(const char *port)
 
   if (bind(_soc, (struct sockaddr *)&addr, sizeof(addr)) < 0)
   {
-
     return -1;
   }
 

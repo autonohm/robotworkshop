@@ -19,7 +19,13 @@ public:
   ~MotorControllerSerial();
 
   /**
-   * Set revolutions per minute
+   * Set motor revolutions per minute
+   * @param[in] rpm set point value, this device supports up to 6 channels
+   */
+  void setRPM(std::vector<float> rpm);
+
+  /**
+   * Set motor revolutions per minute
    * @param[in] rpm 6-channel rpm value
    */
   void setRPM(float rpm[6]);

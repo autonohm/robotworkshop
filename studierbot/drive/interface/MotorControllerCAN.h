@@ -2,6 +2,8 @@
 #define _MOTORCONTROLLERCAN_H_
 
 #include "MotorController.h"
+#include <linux/can.h>
+#include <linux/can/raw.h>
 
 class MotorControllerCAN : public MotorController
 {
@@ -16,6 +18,10 @@ public:
    * Destructor
    */
   ~MotorControllerCAN();
+
+  void enable();
+
+  void setPWM(char pwm);
 
   /**
    * Set revolutions per minute
@@ -37,8 +43,6 @@ public:
 
 private:
 
-  void init();
-
   int openPort(const char *port);
 
   int sendPort(struct can_frame *frame);
@@ -48,6 +52,8 @@ private:
   int closePort();
 
   int _soc;
+
+  can_frame _cf;
 };
 
 #endif /* _MOTORCONTROLLERCAN_H_ */
