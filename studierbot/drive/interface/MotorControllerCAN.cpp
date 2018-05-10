@@ -9,10 +9,10 @@
 
 MotorControllerCAN::MotorControllerCAN(MotorParams &params) : MotorController(params)
 {
-  openPort("slcan0");
-  _cf.can_id  = 0x11F;
-  _cf.can_dlc = 3;
-  stop();
+  _soc = 0;
+
+  if(!openPort(params.port.c_str()))
+    std::cout << "WARNING: Cannot open CAN device interface" << std::endl;
 }
 
 MotorControllerCAN::~MotorControllerCAN()
@@ -21,56 +21,36 @@ MotorControllerCAN::~MotorControllerCAN()
   closePort();
 }
 
-void MotorControllerCAN::enable()
+MotorParams MotorControllerCAN::getStandardParameters()
 {
+  MotorParams p;
+  p.port = std::string("slcan0");
+  return p;
+}
+
+bool MotorControllerCAN::enable()
+{
+  _cf.can_id  = 0x308;
+  _cf.can_dlc = 1;
   _cf.data[0] = 0x01;
-  _cf.data[1] = 0x00;
-  _cf.data[2] = 0x00;
   sendPort(&_cf);
 }
 
-void MotorControllerCAN::setPWM(char pwm)
+void MotorControllerCAN::setRPM(std::map<MotorControllerChannel, float> rpm)
 {
-  _cf.data[0] = 0x10;
-  _cf.data[1] = pwm + 0x7F;
-  _cf.data[2] = pwm + 0x7F;
-  sendPort(&_cf);
-}
+  _cf.can_id  = 0x308;
+  _cf.can_dlc = 3;
 
-void MotorControllerCAN::setRPM(float rpm[6])
-{
-  float rpmLargest = std::abs(rpm[0]);
-  for(int i=1; i<6; i++)
+  //for(int i=0; i<rpm.size(); i++)
   {
-    if(std::abs(rpm[i])> rpmLargest)
-      rpmLargest = std::abs(rpm[i]);
+    int vel = (int)rpm[CH0] + 0x7F;
+    _cf.data[0] = 0x10;
+    _cf.data[1] = (char)vel;
+    _cf.data[2] = (char)vel;
+
+    sendPort(&_cf);
+    readPort();
   }
-  float factor = rpmLargest / _rpmMax;
-
-  if(factor>1.0)
-  {
-    for(int i=0; i<6; i++)
-    {
-      rpm[i] = rpm[i] /= factor;
-    }
-  }
-  short wset[6];
-
-  wset[0] = rpm[0] * VALUESCALE;
-  wset[1] = rpm[1] * VALUESCALE;
-  wset[2] = rpm[2] * VALUESCALE;
-  wset[3] = rpm[3] * VALUESCALE;
-  wset[4] = rpm[4] * VALUESCALE;
-  wset[5] = rpm[5] * VALUESCALE;
-
-  bool retval = false;
-
-  if(retval)
-  {
-
-  }
-  else
-    std::cout << "failed to receive" << std::endl;
 }
 
 float MotorControllerCAN::getRPM(unsigned int idx)
@@ -80,10 +60,16 @@ float MotorControllerCAN::getRPM(unsigned int idx)
 
 void MotorControllerCAN::stop()
 {
-  short wset[6] = {0, 0, 0, 0, 0, 0};
+  _cf.can_id  = 0x308;
+  _cf.can_dlc = 3;
+
+  _cf.data[0] = 0x10;
+  _cf.data[1] = 0x7F;
+  _cf.data[2] = 0x7F;
+  sendPort(&_cf);
 }
 
-int MotorControllerCAN::openPort(const char *port)
+bool MotorControllerCAN::openPort(const char *port)
 {
   struct ifreq ifr;
   struct sockaddr_can addr;
@@ -91,7 +77,7 @@ int MotorControllerCAN::openPort(const char *port)
   _soc = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if(_soc < 0)
   {
-    return -1;
+    return false;
   }
 
   addr.can_family = AF_CAN;
@@ -99,7 +85,7 @@ int MotorControllerCAN::openPort(const char *port)
 
   if (ioctl(_soc, SIOCGIFINDEX, &ifr) < 0)
   {
-    return -1;
+    return false;
   }
 
   addr.can_ifindex = ifr.ifr_ifindex;
@@ -108,23 +94,23 @@ int MotorControllerCAN::openPort(const char *port)
 
   if (bind(_soc, (struct sockaddr *)&addr, sizeof(addr)) < 0)
   {
-    return -1;
+    return false;
   }
 
-  return 0;
+  return true;
 }
 
-int MotorControllerCAN::sendPort(struct can_frame *frame)
+bool MotorControllerCAN::sendPort(struct can_frame *frame)
 {
   int retval;
   retval = write(_soc, frame, sizeof(struct can_frame));
   if (retval != sizeof(struct can_frame))
   {
-    return -1;
+    return false;
   }
   else
   {
-    return 0;
+    return true;
   }
 }
 
@@ -133,35 +119,32 @@ void MotorControllerCAN::readPort()
   struct can_frame frame_rd;
   int recvbytes = 0;
 
-  int read_can_port = 1;
-  while(read_can_port)
-  {
-    struct timeval timeout = {1, 0};
-    fd_set readSet;
-    FD_ZERO(&readSet);
-    FD_SET(_soc, &readSet);
+  struct timeval timeout = {0, 100};
+  fd_set readSet;
+  FD_ZERO(&readSet);
+  FD_SET(_soc, &readSet);
 
-    if (select((_soc + 1), &readSet, NULL, NULL, &timeout) >= 0)
+  if (select((_soc + 1), &readSet, NULL, NULL, &timeout) >= 0)
+  {
+    if (FD_ISSET(_soc, &readSet))
     {
-      if (!read_can_port)
+      recvbytes = read(_soc, &frame_rd, sizeof(struct can_frame));
+      if(recvbytes)
       {
-        break;
-      }
-      if (FD_ISSET(_soc, &readSet))
-      {
-        recvbytes = read(_soc, &frame_rd, sizeof(struct can_frame));
-        if(recvbytes)
+        if(frame_rd.can_dlc==5)
         {
-          std::cout << "dlc = " << frame_rd.can_dlc << ", data = " << frame_rd.data << std::endl;
+          int pos1 = frame_rd.data[1] | (frame_rd.data[2] << 8);
+          int pos2 = frame_rd.data[3] | (frame_rd.data[4] << 8);
+          std::cout << "Pos1: " << pos1 << " ,Pos2: " << pos2 << std::endl;
         }
       }
     }
-
   }
 }
 
 int MotorControllerCAN::closePort()
 {
-  close(_soc);
+  if(_soc)
+    close(_soc);
   return 0;
 }

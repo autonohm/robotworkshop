@@ -19,15 +19,23 @@ public:
    */
   ~MotorControllerCAN();
 
-  void enable();
-
-  void setPWM(char pwm);
+  /**
+   * Get standard parameters for CAN motor interface
+   * @return Default MotorParams
+   */
+  static MotorParams getStandardParameters();
 
   /**
-   * Set revolutions per minute
-   * @param[in] rpm 6-channel rpm value
+   * Enable device
+   * @return enable state
    */
-  void setRPM(float rpm[6]);
+  virtual bool enable();
+
+  /**
+   * Set motor revolutions per minute
+   * @param[in] rpm set point value, this device supports up to 16 channels
+   */
+  virtual void setRPM(std::map<MotorControllerChannel, float> rpm);
 
   /**
    * Get revolutions per minute
@@ -43,9 +51,9 @@ public:
 
 private:
 
-  int openPort(const char *port);
+  bool openPort(const char *port);
 
-  int sendPort(struct can_frame *frame);
+  bool sendPort(struct can_frame *frame);
 
   void readPort();
 

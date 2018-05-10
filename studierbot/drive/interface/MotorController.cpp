@@ -15,16 +15,10 @@ using namespace std;
 
 MotorController::MotorController(MotorParams &params)
 {
-  _rpmMax       = params.rpmMax;
-  _gearRatio    = params.gearRatio;
-  _encoderRatio = params.encoderRatio;
-  _kp           = params.kp;
-  _ki           = params.ki;
-  _kd           = params.kd;
-  _antiWindup   = params.antiWindup;
+  _params = params;
 
-  cout << "Maximum RPM: " << _rpmMax << endl;
-  cout << _kp << " " << _ki << " " << _kd << endl;
+  cout << "Maximum RPM: " << _params.rpmMax << endl;
+  cout << _params.kp << " " << _params.ki << " " << _params.kd << endl;
 }
 
 MotorController::~MotorController()
@@ -34,10 +28,10 @@ MotorController::~MotorController()
 
 float MotorController::getRPMMax() const
 {
-  return _rpmMax;
+  return _params.rpmMax;
 }
 
 float MotorController::getGearRatio() const
 {
-  return _gearRatio;
+  return _params.gearRatio;
 }

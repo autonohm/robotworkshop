@@ -2,6 +2,7 @@
 #define MOTORCONTROLLER_H_
 
 #include <string>
+#include <map>
 
 #include "protocol.h"
 #include "control.h"
@@ -36,21 +37,18 @@ struct ChassisParams
 
 struct MotorParams
 {
-  std::string comPort;
-  float       gearRatio;
-  float       encoderRatio;
-  float       rpmMax;
-  float       kp;
-  float       ki;
-  float       kd;
-  int         antiWindup;
+  std::string port;         // Device file link to either serial or can interface
+  float       gearRatio;    // Ratio between motor and wheel turns
+  float       encoderRatio; // ticks per motor revolution
+  float       rpmMax;       // Maximum wheel revolutions per minute
+  float       kp;           // Proportional factor variable of PID controller
+  float       ki;           // Integration factor of PID controller
+  float       kd;           // Differential factor of PID controller
+  int         antiWindup;   // Avoid integration, if maximum control value is reached
 
-  /**
-   * Standard constructor assigns default parameters
-   */
   MotorParams()
   {
-    comPort      = std::string("/dev/frdm_dc_shield");
+    port         = std::string("");
     gearRatio    = 0.f;
     encoderRatio = 0.f;
     rpmMax       = 0.f;
@@ -66,15 +64,17 @@ struct MotorParams
    */
   MotorParams(const MotorParams &p)
   {
-    gearRatio = p.gearRatio;
+    gearRatio    = p.gearRatio;
     encoderRatio = p.encoderRatio;
-    rpmMax = p.rpmMax;
-    kp = p.kp;
-    ki = p.ki;
-    kd = p.kd;
-    antiWindup = p.antiWindup;
+    rpmMax       = p.rpmMax;
+    kp           = p.kp;
+    ki           = p.ki;
+    kd           = p.kd;
+    antiWindup   = p.antiWindup;
   }
 };
+
+enum MotorControllerChannel {CH0, CH1, CH2, CH3, CH4, CH5, CH6, CH7, CH8, CH9, CH10, CH11, CH12, CH13, CH14, CH15};
 
 /**
  * @class MotorController
@@ -98,6 +98,12 @@ public:
   virtual ~MotorController();
 
   /**
+   * Enable device
+   * @return enable state
+   */
+  virtual bool enable() = 0;
+
+  /**
    * Get maximum revolutions per minute
    * @return maximum rpm
    */
@@ -110,10 +116,10 @@ public:
   float getGearRatio() const;
 
   /**
-   * Set revolutions per minute
-   * @param[in] rpm 6-channel rpm value
+   * Set motor revolutions per minute
+   * @param[in] rpm set point value, see concrete device for supported number of channels
    */
-  virtual void setRPM(float rpm[6]) = 0;
+  virtual void setRPM(std::map<MotorControllerChannel, float> rpm) = 0;
 
   /**
    * Get revolutions per minute
@@ -129,13 +135,7 @@ public:
 
 protected:
 
-  float _rpmMax;
-  float _gearRatio;
-  float _encoderRatio;
-  float _kp;
-  float _ki;
-  float _kd;
-  int   _antiWindup;
+  MotorParams _params;
 };
 
 #endif /* MOTORCONTROLLER_H_ */

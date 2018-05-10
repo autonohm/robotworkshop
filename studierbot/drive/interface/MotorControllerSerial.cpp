@@ -8,55 +8,6 @@ MotorControllerSerial::MotorControllerSerial(MotorParams &params) : MotorControl
   _baud = B115200;
   _com  = new SerialPort(params.comPort.c_str(), _baud);
 
-  init();
-  stop();
-}
-
-
-template<typename T>
-bool MotorControllerSerial::sendToMotorshield(char cmd, T param, bool echo)
-{
-  _bufCmd[0] = cmd;
-  convertTo12ByteArray(param, &_bufCmd[1]);
-  int sent = _com->send(_bufCmd, 14);
-  bool retval = _com->receive(_bufResponse, 13);
-
-  if(echo)
-  {
-    T check;
-    convertFromByteArray(_bufResponse, check);
-    std::cout << "Sent " << param << ", echo: " << check << std::endl;
-  }
-
-  return retval;
-}
-
-bool MotorControllerSerial::sendToMotorshieldF(char cmd, float param, bool echo)
-{
-  _bufCmd[13] = 'F';
-  return sendToMotorshield<float>(cmd, param, echo);
-}
-
-bool MotorControllerSerial::sendToMotorshieldI(char cmd, int param, bool echo)
-{
-  _bufCmd[13] = 'I';
-  return sendToMotorshield<int>(cmd, param, echo);
-}
-
-bool MotorControllerSerial::sendToMotorshieldS(char cmd, short param[6], bool echo)
-{
-  _bufCmd[13] = 'S';
-  bool retval = sendToMotorshield<short[6]>(cmd, param, false);
-  if(echo)
-  {
-    short check[6];
-    convertFromByteArray(_bufResponse, check);
-  }
-  return retval;
-}
-
-void MotorControllerSerial::init()
-{
   bool  retval = false;
   float responseF;
 
@@ -64,13 +15,13 @@ void MotorControllerSerial::init()
   {
     _bufCmd[0] = 0x16;
     _bufCmd[13] = 'F';
-    convertTo12ByteArray(_gearRatio, &_bufCmd[1]);
+    convertTo12ByteArray(_params.gearRatio, &_bufCmd[1]);
     int sent = _com->send(_bufCmd, 14);
     retval = _com->receive(_bufResponse, 13);
     convertFromByteArray(_bufResponse, responseF);
-    retval = (_gearRatio==responseF);
+    retval = (_params.gearRatio==responseF);
   }
-  std::cout << "Gear ratio: " << _gearRatio << std::endl;
+  std::cout << "Gear ratio: " << _params.gearRatio << std::endl;
 
   retval = false;
 
@@ -78,17 +29,26 @@ void MotorControllerSerial::init()
   {
     _bufCmd[0] = 0x17;
     _bufCmd[13] = 'F';
-    convertTo12ByteArray(_encoderRatio, &_bufCmd[1]);
+    convertTo12ByteArray(_params.encoderRatio, &_bufCmd[1]);
     int sent = _com->send(_bufCmd, 14);
     retval = _com->receive(_bufResponse, 13);
     convertFromByteArray(_bufResponse, responseF);
-    retval = (_encoderRatio==responseF);
+    retval = (_params.encoderRatio==responseF);
   }
 
-  sendToMotorshieldF(0x02, _kp, true);
-  sendToMotorshieldF(0x03, _ki, true);
-  sendToMotorshieldF(0x04, _kd, true);
-  sendToMotorshieldI(0x15, _antiWindup, true);
+  float checkF;
+  int checkI;
+  retval &= sendToMotorshieldF(0x02, _params.kp, &checkF, true);
+  retval &= sendToMotorshieldF(0x03, _params.ki, &checkF, true);
+  retval &= sendToMotorshieldF(0x04, _params.kd, &checkF, true);
+  retval &= sendToMotorshieldI(0x15, _params.antiWindup, &checkI, true);
+
+  if(!retval)
+    std::cout << "WARNING: PID parameters could not be set. Motorcontroller cannot be enabled." << std::endl;
+
+  _init = retval;
+
+  stop();
 }
 
 MotorControllerSerial::~MotorControllerSerial()
@@ -96,7 +56,30 @@ MotorControllerSerial::~MotorControllerSerial()
   stop();
 }
 
-void MotorControllerSerial::setRPM(std::vector<float> rpm)
+MotorParams MotorControllerSerial::getStandardParameters()
+{
+  MotorParams p;
+  p.port         = std::string("/dev/frdm_dc_shield");
+  return p;
+}
+
+bool MotorControllerSerial::enable()
+{
+  bool retval = false;
+  if(_init)
+  {
+    int   responseI;
+    // Enable Motorcontroller
+    while(!retval)
+    {
+      sendToMotorshieldI(0x18, 1, &responseI, true);
+      retval = (responseI==1);
+    }
+  }
+  return retval;
+}
+
+void MotorControllerSerial::setRPM(std::map<MotorControllerChannel, float> rpm)
 {
   int len = rpm.size() > 6 ? 6 : rpm.size();
   float r[6];
@@ -108,45 +91,42 @@ void MotorControllerSerial::setRPM(std::vector<float> rpm)
   r[5] = 0.f;
   for(int i=0; i<len; i++)
     r[i] = rpm[i];
-  setRPM(r);
-}
 
-void MotorControllerSerial::setRPM(float rpm[6])
-{
-  float rpmLargest = std::abs(rpm[0]);
+  float rpmLargest = std::abs(r[0]);
   for(int i=1; i<6; i++)
   {
-    if(std::abs(rpm[i])> rpmLargest)
-      rpmLargest = std::abs(rpm[i]);
+    if(std::abs(r[i])> rpmLargest)
+      rpmLargest = std::abs(r[i]);
   }
-  float factor = rpmLargest / _rpmMax;
+  float factor = rpmLargest / _params.rpmMax;
 
   if(factor>1.0)
   {
     for(int i=0; i<6; i++)
     {
-      rpm[i] = rpm[i] /= factor;
+      r[i] = r[i] /= factor;
     }
   }
   short wset[6];
+  short wResponse[6];
 
-  wset[0] = rpm[0] * VALUESCALE;
-  wset[1] = rpm[1] * VALUESCALE;
-  wset[2] = rpm[2] * VALUESCALE;
-  wset[3] = rpm[3] * VALUESCALE;
-  wset[4] = rpm[4] * VALUESCALE;
-  wset[5] = rpm[5] * VALUESCALE;
+  wset[0] = r[0] * VALUESCALE;
+  wset[1] = r[1] * VALUESCALE;
+  wset[2] = r[2] * VALUESCALE;
+  wset[3] = r[3] * VALUESCALE;
+  wset[4] = r[4] * VALUESCALE;
+  wset[5] = r[5] * VALUESCALE;
 
-  bool retval = sendToMotorshieldS(0x01, wset, true);
+  bool retval = sendToMotorshieldS(0x01, wset, &wResponse, true);
 
   if(retval)
   {
-    _rpm[0] = ((_bufResponse[0] << 8) & 0xFF00) | (_bufResponse[1] & 0x00FF);
-    _rpm[1] = ((_bufResponse[2] << 8) & 0xFF00) | (_bufResponse[3] & 0x00FF);
-    _rpm[2] = ((_bufResponse[4] << 8) & 0xFF00) | (_bufResponse[5] & 0x00FF);
-    _rpm[3] = ((_bufResponse[6] << 8) & 0xFF00) | (_bufResponse[7] & 0x00FF);
-    _rpm[4] = ((_bufResponse[8] << 8) & 0xFF00) | (_bufResponse[9] & 0x00FF);
-    _rpm[5] = ((_bufResponse[10] << 8) & 0xFF00) | (_bufResponse[11] & 0x00FF);
+    _rpm[0] = wResponse[0];
+    _rpm[1] = wResponse[1];
+    _rpm[2] = wResponse[2];
+    _rpm[3] = wResponse[3];
+    _rpm[4] = wResponse[4];
+    _rpm[5] = wResponse[5];
   }
   else
     std::cout << "failed to receive" << std::endl;
@@ -160,6 +140,44 @@ float MotorControllerSerial::getRPM(unsigned int idx)
 void MotorControllerSerial::stop()
 {
   short wset[6] = {0, 0, 0, 0, 0, 0};
+  short wResponse[6];
 
-  bool retval = sendToMotorshieldS(0x01, wset, true);
+  bool retval = sendToMotorshieldS(0x01, wset, &wResponse, true);
+}
+
+template<typename T>
+bool MotorControllerSerial::sendToMotorshield(char cmd, T param, T* response, bool echo)
+{
+  _bufCmd[0] = cmd;
+  convertTo12ByteArray(param, &_bufCmd[1]);
+  int sent = _com->send(_bufCmd, 14);
+  bool retval = _com->receive(_bufResponse, 13);
+
+  T check;
+  convertFromByteArray(_bufResponse, check);
+
+  if(echo)
+  {
+    std::cout << "Sent " << param << ", echo: " << check << std::endl;
+  }
+
+  return (param==check);
+}
+
+bool MotorControllerSerial::sendToMotorshieldF(char cmd, float param, float* response, bool echo)
+{
+  _bufCmd[13] = 'F';
+  return sendToMotorshield<float>(cmd, param, response, echo);
+}
+
+bool MotorControllerSerial::sendToMotorshieldI(char cmd, int param, int* response, bool echo)
+{
+  _bufCmd[13] = 'I';
+  return sendToMotorshield<int>(cmd, param, response, echo);
+}
+
+bool MotorControllerSerial::sendToMotorshieldS(char cmd, short param[6], short (*response)[6], bool echo)
+{
+  _bufCmd[13] = 'S';
+  return sendToMotorshield<short[6]>(cmd, param, response, false);
 }
