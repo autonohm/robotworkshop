@@ -79,9 +79,15 @@ bool MotorControllerSerial::enable()
   return retval;
 }
 
-void MotorControllerSerial::setRPM(std::map<MotorControllerChannel, float> rpm)
+bool setPWM(std::vector<int> pwm, std::vector<float> &rpm)
 {
-  int len = rpm.size() > 6 ? 6 : rpm.size();
+  return false;
+}
+
+bool MotorControllerSerial::setRPM(std::vector<float> rpmIn, std::vector<float> &rpmOut)
+{
+  bool retval = false;
+  int len = rpmIn.size() > 6 ? 6 : rpmIn.size();
   float r[6];
   r[0] = 0.f;
   r[1] = 0.f;
@@ -90,7 +96,7 @@ void MotorControllerSerial::setRPM(std::map<MotorControllerChannel, float> rpm)
   r[4] = 0.f;
   r[5] = 0.f;
   for(int i=0; i<len; i++)
-    r[i] = rpm[i];
+    r[i] = rpmIn[i];
 
   float rpmLargest = std::abs(r[0]);
   for(int i=1; i<6; i++)
@@ -127,14 +133,17 @@ void MotorControllerSerial::setRPM(std::map<MotorControllerChannel, float> rpm)
     _rpm[3] = wResponse[3];
     _rpm[4] = wResponse[4];
     _rpm[5] = wResponse[5];
+
+    rpmOut.clear();
+    for(int i=0; i<len; i++)
+      rpmOut.push_back(((float)_rpm[i]) / (float)VALUESCALE);
+
+    retval = true;
   }
   else
     std::cout << "failed to receive" << std::endl;
-}
 
-float MotorControllerSerial::getRPM(unsigned int idx)
-{
-  return ((float)_rpm[idx]) / (float)VALUESCALE;
+  return retval;
 }
 
 void MotorControllerSerial::stop()

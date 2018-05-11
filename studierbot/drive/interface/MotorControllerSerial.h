@@ -31,17 +31,20 @@ public:
   virtual bool enable();
 
   /**
-   * Set motor revolutions per minute
-   * @param[in] rpm set point value, this device supports up to 6 channels
+   * Set pulse width modulated signal
+   * @param[in] prm pulse width in range [-100;100]
+   * @param[out] revolutions per minute (RPM)
+   * @return success
    */
-  virtual void setRPM(std::map<MotorControllerChannel, float> rpm);
+  virtual bool setPWM(std::vector<int> pwm, std::vector<float> &rpm);
 
   /**
-   * Get revolutions per minute
-   * param[in] idx motor index
-   * @return rpm
+   * Set motor revolutions per minute
+   * @param[in] rpmIn set point value, this device supports up to 6 channels
+   * @param[out] rpmOut rotational speed in revolutions per minute (RPM)
+   * @return success
    */
-  float getRPM(unsigned int idx);
+  virtual bool setRPM(std::vector<float> rpmIn, std::vector<float> &rpmOut);
 
   /**
    * Stop motors

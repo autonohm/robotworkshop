@@ -2,7 +2,7 @@
 #define MOTORCONTROLLER_H_
 
 #include <string>
-#include <map>
+#include <vector>
 
 #include "protocol.h"
 #include "control.h"
@@ -116,17 +116,18 @@ public:
   float getGearRatio() const;
 
   /**
-   * Set motor revolutions per minute
-   * @param[in] rpm set point value, see concrete device for supported number of channels
+   * Set pulse width modulated signal
+   * @param[in] prm pulse width in range [-100;100]
+   * @param[out] revolutions per minute (RPM)
+   * @return success
    */
-  virtual void setRPM(std::map<MotorControllerChannel, float> rpm) = 0;
+  virtual bool setPWM(std::vector<int> pwm, std::vector<float> &rpm) = 0;
 
   /**
-   * Get revolutions per minute
-   * param[in] idx motor index
-   * @return rpm
+   * Set motor revolutions per minute
+   * @param[in] rpm set point value
    */
-  virtual float getRPM(unsigned int idx) = 0;
+  virtual bool setRPM(std::vector<float> rpmIn, std::vector<float> &rpmOut) = 0;
 
   /**
    * Stop motors

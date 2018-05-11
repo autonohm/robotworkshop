@@ -6,6 +6,11 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <iomanip>
+
+#define GROUPID   (0x01 << 9)
+#define SYSTEMID  (0x4  << 6)
+#define COMPINPUT (0x0  << 5)
 
 MotorControllerCAN::MotorControllerCAN(MotorParams &params) : MotorController(params)
 {
@@ -30,32 +35,57 @@ MotorParams MotorControllerCAN::getStandardParameters()
 
 bool MotorControllerCAN::enable()
 {
-  _cf.can_id  = 0x308;
+  _cf.can_id  = 0x31F;
   _cf.can_dlc = 1;
   _cf.data[0] = 0x01;
   sendPort(&_cf);
 }
 
-void MotorControllerCAN::setRPM(std::map<MotorControllerChannel, float> rpm)
+/**
+ * Set pulse width modulated signal
+ * @param[in] rpm pulse width in range [-100;100]
+ * @param[out] revolutions per minute (RPM)
+ * @return success
+ */
+bool MotorControllerCAN::setPWM(std::vector<int> pwm, std::vector<float> &rpm)
 {
-  _cf.can_id  = 0x308;
-  _cf.can_dlc = 3;
+  bool retval = false;
 
-  //for(int i=0; i<rpm.size(); i++)
+  if(pwm.size()%2==0)
   {
-    int vel = (int)rpm[CH0] + 0x7F;
-    _cf.data[0] = 0x10;
-    _cf.data[1] = (char)vel;
-    _cf.data[2] = (char)vel;
+    for(int i=0; i<pwm.size(); i+=2)
+    {
+      _cf.can_id  = GROUPID | SYSTEMID | COMPINPUT | 0x0;
+      _cf.can_dlc = 3;
 
-    sendPort(&_cf);
-    readPort();
+      int vel1  = (((int)pwm[2*i]) * 127) / 100;
+      int vel2 = (((int)pwm[2*i+1]) * 127) / 100;
+      //std::cout << vel1 << " " << vel2 << std::endl;
+      _cf.data[0] = 0x10;
+      _cf.data[1] = (char)(vel1 + 0x7F);
+      _cf.data[2] = (char)(vel2 + 0x7F);
+
+      sendPort(&_cf);
+      rpm.clear();
+      float rpm1;
+      float rpm2;
+      retval = readPort(&rpm1, &rpm2);
+      if(retval)
+      {
+
+        std::cout << std::setw(6) << vel1 << " " << std::setw(6) << vel2 << " " << std::setw(6) << rpm1 << " " << std::setw(6) << rpm2 << std::endl;
+        rpm.push_back(rpm1);
+        rpm.push_back(rpm2);
+      }
+    }
   }
+
+  return retval;
 }
 
-float MotorControllerCAN::getRPM(unsigned int idx)
+bool MotorControllerCAN::setRPM(std::vector<float> rpmIn, std::vector<float> &rpmOut)
 {
-  return 0.f;
+  return false;
 }
 
 void MotorControllerCAN::stop()
@@ -114,8 +144,10 @@ bool MotorControllerCAN::sendPort(struct can_frame *frame)
   }
 }
 
-void MotorControllerCAN::readPort()
+bool MotorControllerCAN::readPort(float* rpm1, float* rpm2)
 {
+  bool retval = false;
+
   struct can_frame frame_rd;
   int recvbytes = 0;
 
@@ -133,13 +165,14 @@ void MotorControllerCAN::readPort()
       {
         if(frame_rd.can_dlc==5)
         {
-          int pos1 = frame_rd.data[1] | (frame_rd.data[2] << 8);
-          int pos2 = frame_rd.data[3] | (frame_rd.data[4] << 8);
-          std::cout << "Pos1: " << pos1 << " ,Pos2: " << pos2 << std::endl;
+          *rpm1 = ((float)((short)(frame_rd.data[1] | (frame_rd.data[2] << 8))))/100.f;
+          *rpm2 = ((float)((short)(frame_rd.data[3] | (frame_rd.data[4] << 8))))/100.f;
+          retval = true;
         }
       }
     }
   }
+  return retval;
 }
 
 int MotorControllerCAN::closePort()

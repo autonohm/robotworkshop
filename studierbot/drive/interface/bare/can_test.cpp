@@ -14,24 +14,29 @@ int main(int argc, char* argv[])
   MotorControllerCAN mc(params);
   mc.enable();
 
-  std::map<MotorControllerChannel, float> rpm;
+  std::vector<int> pwm;
+  std::vector<float> rpmOut;
 
-  for(char i=0; i<0x7F; i++)
+  pwm.resize(2);
+  for(char i=0; i<100; i++)
   {
-    rpm[CH0] = i;
-    mc.setRPM(rpm);
+    pwm[0] = i;
+    pwm[1] = i;
+    mc.setPWM(pwm, rpmOut);
     usleep(40000);
   }
-  for(char i=0x7F; i>-0x7F; i--)
+  for(char i=100; i>-100; i--)
   {
-    rpm[CH0] = i;
-    mc.setRPM(rpm);
+    pwm[0] = i;
+    pwm[1] = i;
+    mc.setPWM(pwm, rpmOut);
     usleep(40000);
   }
-  for(char i=-0x7F; i<=0x00; i++)
+  for(char i=-100; i<=0; i++)
   {
-    rpm[CH0] = i;
-    mc.setRPM(rpm);
+    pwm[0] = i;
+    pwm[1] = i;
+    mc.setPWM(pwm, rpmOut);
     usleep(40000);
   }
 }
