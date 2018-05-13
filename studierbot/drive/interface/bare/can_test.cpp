@@ -5,38 +5,62 @@
  */
 #include "MotorControllerCAN.h"
 #include <unistd.h>
+#include <iostream>
+#include <cmath>
 
 using namespace std;
 
+void setPWM(MotorControllerCAN* mc, int val)
+{
+  int pwm[2];
+  float rpm[2];
+  pwm[0] = val;
+  pwm[1] = val;
+  if(mc->setPWM(pwm))
+  {
+    mc->waitForSync();
+    mc->getRPM(rpm);
+    std::cout << "RPM1: " << rpm[0] << " " << ", RPM2: " << rpm[1] << std::endl;
+  }
+  else
+  {
+    std::cout << "Failed to set PWM value" << std::endl;
+    usleep(1000);
+  }
+}
+
+
 int main(int argc, char* argv[])
 {
-  MotorParams params = MotorControllerCAN::getStandardParameters();
-  MotorControllerCAN mc(params);
-  mc.enable();
+  SocketCAN can(std::string("slcan0"));
+  MotorControllerCAN mc(&can, 0);
+  can.startListener();
 
-  std::vector<int> pwm;
-  std::vector<float> rpmOut;
+  if(!mc.enable())
+  {
+    std::cout << "Enabling motor controller failed" << std::endl;
+    return -1;
+  }
+  float gearRatio[2] = {131.f, 1024.f};
+  float encoderTicksPerRev[2] = {64.f, 14.f};
+  if(!mc.setGearRatio(gearRatio))
+  {
+    std::cout << "Setting gear ratio failed" << std::endl;
+    return -1;
+  }
+  if(!mc.setEncoderTicksPerRev(encoderTicksPerRev))
+  {
+    std::cout << "Setting encoder parameters failed" << std::endl;
+    return -1;
+  }
 
-  pwm.resize(2);
-  for(char i=0; i<100; i++)
+  int pwm[2];
+  float rpm[2];
+  for(int i=0; i<500; i++)
   {
-    pwm[0] = i;
-    pwm[1] = i;
-    mc.setPWM(pwm, rpmOut);
-    usleep(40000);
-  }
-  for(char i=100; i>-100; i--)
-  {
-    pwm[0] = i;
-    pwm[1] = i;
-    mc.setPWM(pwm, rpmOut);
-    usleep(40000);
-  }
-  for(char i=-100; i<=0; i++)
-  {
-    pwm[0] = i;
-    pwm[1] = i;
-    mc.setPWM(pwm, rpmOut);
-    usleep(40000);
+    float phase = ((float)i) * (2.f*M_PI) * 0.002;
+    std::cout << phase << std::endl;
+    int val = (int)(sin(phase) * 100.f);
+    setPWM(&mc, val);
   }
 }

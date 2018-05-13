@@ -1,8 +1,8 @@
-CC=g++
+CC=g++ -std=c++11 -pthread -g
 CFLAGS=-c -Wall
 INC=..
 SRC_COMMON=../SerialPort.cpp ../SerialPort.h ../protocol.h ../control.cpp ../control.h
-SRC_CAN=../MotorControllerCAN.cpp ../MotorControllerCAN.h ../MotorController.cpp ../MotorController.h
+SRC_CAN=../MotorControllerCAN.cpp ../MotorControllerCAN.h ../SocketCAN.cpp ../SocketCAN.h ../SocketCANObserver.cpp ../SocketCANObserver.h
 SRC_OPEN_LOOP=step_response_open_loop.cpp
 SRC_CLOSED_LOOP=step_response_closed_loop.cpp
 SRC_CAN_TEST=can_test.cpp

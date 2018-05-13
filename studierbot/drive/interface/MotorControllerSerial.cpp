@@ -2,8 +2,13 @@
 #include <iostream>
 #include <cmath>
 
-MotorControllerSerial::MotorControllerSerial(MotorParams &params) : MotorController(params)
+MotorControllerSerial::MotorControllerSerial(MotorParams &params)
 {
+
+  _params = params;
+
+  std::cout << "Maximum RPM: " << _params.rpmMax << std::endl;
+  std::cout << _params.kp << " " << _params.ki << " " << _params.kd << std::endl;
 
   _baud = B115200;
   _com  = new SerialPort(params.comPort.c_str(), _baud);
@@ -77,6 +82,16 @@ bool MotorControllerSerial::enable()
     }
   }
   return retval;
+}
+
+float MotorController::getRPMMax() const
+{
+  return _params.rpmMax;
+}
+
+float MotorController::getGearRatio() const
+{
+  return _params.gearRatio;
 }
 
 bool setPWM(std::vector<int> pwm, std::vector<float> &rpm)

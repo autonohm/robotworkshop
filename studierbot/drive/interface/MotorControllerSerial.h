@@ -2,9 +2,8 @@
 #define _MOTORCONTROLLERSERIAL_H_
 
 #include "SerialPort.h"
-#include "MotorController.h"
 
-class MotorControllerSerial : public MotorController
+class MotorControllerSerial
 {
 public:
   /**
@@ -31,12 +30,24 @@ public:
   virtual bool enable();
 
   /**
+   * Get maximum revolutions per minute
+   * @return maximum rpm
+   */
+  float getRPMMax() const;
+
+  /**
+   * Get ratio of gearbox
+   * @return gear ratio
+   */
+  float getGearRatio() const;
+
+  /**
    * Set pulse width modulated signal
-   * @param[in] prm pulse width in range [-100;100]
+   * @param[in] rpm pulse width in range [-100;100]
    * @param[out] revolutions per minute (RPM)
    * @return success
    */
-  virtual bool setPWM(std::vector<int> pwm, std::vector<float> &rpm);
+  bool setPWM(std::vector<int> pwm, std::vector<float> &rpm);
 
   /**
    * Set motor revolutions per minute
@@ -44,7 +55,7 @@ public:
    * @param[out] rpmOut rotational speed in revolutions per minute (RPM)
    * @return success
    */
-  virtual bool setRPM(std::vector<float> rpmIn, std::vector<float> &rpmOut);
+  bool setRPM(std::vector<float> rpmIn, std::vector<float> &rpmOut);
 
   /**
    * Stop motors
@@ -64,6 +75,8 @@ private:
   bool sendToMotorshieldS(char cmd, short param[6], short (*response)[6], bool echo);
   bool sendToMotorshieldI(char cmd, int param, int* response, bool echo);
   bool sendToMotorshieldF(char cmd, float param, float* response, bool echo);
+
+  MotorParams _params;
 
   bool        _init;
   speed_t     _baud;
