@@ -156,8 +156,10 @@ void MotorControllerCAN::notify(struct can_frame* frame)
 {
   if(frame->can_dlc==5)
   {
-    _rpm[0] = ((float)((short)(frame->data[1] | (frame->data[2] << 8))))/100.f;
-    _rpm[1] = ((float)((short)(frame->data[3] | (frame->data[4] << 8))))/100.f;
+    short val1 = (frame->data[1] | (frame->data[2] << 8));
+    short val2 = (frame->data[3] | (frame->data[4] << 8));
+    _rpm[0] = ((float)val1)/10.f;
+    _rpm[1] = ((float)val2)/10.f;
     _idSyncReceive = _idSyncSend;
   }
 }

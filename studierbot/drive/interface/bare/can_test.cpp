@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
     std::cout << "Enabling motor controller failed" << std::endl;
     return -1;
   }
-  float gearRatio[2]          = {1024.f, 0.f};
+  float gearRatio[2]          = {2048.f, 0.f};
   float encoderTicksPerRev[2] = {14.f, 0.f};
   if(!mc.setGearRatio(gearRatio))
   {
@@ -65,5 +65,6 @@ int main(int argc, char* argv[])
     float phase = ((float)i) * (2.f*M_PI) * 0.002;
     int val = (int)(sin(phase) * 100.f);
     setPWM(&mc, val);
+    usleep(25000);
   }
 }
