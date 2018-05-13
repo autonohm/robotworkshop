@@ -71,7 +71,7 @@ bool sendToMotorshield(char cmd, T param, T* response, bool echo)
   _bufCmd[0] = cmd;
   convertTo12ByteArray(param, &_bufCmd[1]);
 
-  int  sent   = _com->send(_bufCmd, 14);
+  _com->send(_bufCmd, 14);
   bool retval = _com->receive(_bufIn, 13);
   convertFromByteArray(_bufIn, *response);
 
@@ -148,9 +148,6 @@ int main(int argc, char* argv[])
 
   _com = new SerialPort(_comPort, _baud);
 
-  char  bufCmd[14];
-  char  bufIn[13];
-  int   sent;
   float responseF;
   int   responseI;
   short responseS[6];
@@ -209,28 +206,18 @@ int main(int argc, char* argv[])
     sendToMotorshieldI(0x15, ANTIWINDUP, &responseI, true);
   }
 
-  short val = 0;
-
   timeval clk;
   ::gettimeofday(&clk, 0);
   double t_start = static_cast<double>(clk.tv_sec) + static_cast<double>(clk.tv_usec) * 1.0e-6;
 
   short wsetBase[6];
   short wset[6];
-  double wsetOffset[6];
   wsetBase[0] = w[0] * VALUESCALE;
   wsetBase[1] = w[1] * VALUESCALE;
   wsetBase[2] = w[2] * VALUESCALE;
   wsetBase[3] = w[3] * VALUESCALE;
   wsetBase[4] = w[4] * VALUESCALE;
   wsetBase[5] = w[5] * VALUESCALE;
-
-  wsetOffset[0] = 0.0;
-  wsetOffset[1] = M_PI/6.0;
-  wsetOffset[2] = 2.0*M_PI/6.0;
-  wsetOffset[3] = 3.0*M_PI/6.0;
-  wsetOffset[4] = 4.0*M_PI/6.0;
-  wsetOffset[5] = 5.0*M_PI/6.0;
 
   for(int i=0; i<samples; i++)
   {
@@ -246,6 +233,13 @@ int main(int argc, char* argv[])
     }
 
 #if _INPUTSINE
+    double wsetOffset[6];
+    wsetOffset[0] = 0.0;
+    wsetOffset[1] = M_PI/6.0;
+    wsetOffset[2] = 2.0*M_PI/6.0;
+    wsetOffset[3] = 3.0*M_PI/6.0;
+    wsetOffset[4] = 4.0*M_PI/6.0;
+    wsetOffset[5] = 5.0*M_PI/6.0;
     for(int j=0; j<6; j++)
       wset[j] = wsetBase[j] * sin(((double)i)/180.0*(M_PI/3.0) + wsetOffset[j]);
 
@@ -314,7 +308,7 @@ int main(int argc, char* argv[])
 
   outInput << "0 0" << endl;
   outOutput << "0 0" << endl;
-  for(int i=0; i<vTimestamp.size(); i++)
+  for(unsigned int i=0; i<vTimestamp.size(); i++)
   {
     t += deltaT;
     outInput << t << " " << vU[i];

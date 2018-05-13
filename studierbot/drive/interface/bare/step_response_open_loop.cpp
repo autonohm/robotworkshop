@@ -63,7 +63,7 @@ bool sendToMotorshield(char cmd, T param, T* response, bool echo)
   _bufCmd[0] = cmd;
   convertTo12ByteArray(param, &_bufCmd[1]);
 
-  int  sent   = _com->send(_bufCmd, 14);
+  _com->send(_bufCmd, 14);
   bool retval = _com->receive(_bufIn, 13);
   convertFromByteArray(_bufIn, *response);
 
@@ -141,9 +141,6 @@ int main(int argc, char* argv[])
   vector<float> vV4; // response Motor4
   vector<float> vV5; // response Motor5
   vector<float> vV6; // response Motor6
-
-  short inc = 1;
-  short val = 0;
 
   timeval clk;
   ::gettimeofday(&clk, 0);
@@ -242,7 +239,7 @@ int main(int argc, char* argv[])
 
   outInput << "0 0" << endl;
   outOutput << "0 0" << endl;
-  for(int i=0; i<vTimestamp.size(); i++)
+  for(unsigned int i=0; i<vTimestamp.size(); i++)
   {
     t += deltaT;
     outInput << t << " " << vU[i] << endl;

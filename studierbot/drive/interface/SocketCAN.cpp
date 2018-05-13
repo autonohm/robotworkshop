@@ -138,10 +138,13 @@ void SocketCAN::stopListener()
   delete _thread;
 }
 
-int SocketCAN::closePort()
+bool SocketCAN::closePort()
 {
+  bool retval = false;
   if(_soc)
-    close(_soc);
-  return 0;
+  {
+    retval = (close(_soc)==0);
+  }
+  return retval;
 }
 

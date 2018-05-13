@@ -18,9 +18,15 @@ void setPWM(MotorControllerCAN* mc, int val)
   pwm[1] = val;
   if(mc->setPWM(pwm))
   {
-    mc->waitForSync();
-    mc->getRPM(rpm);
-    std::cout << "RPM1: " << rpm[0] << " " << ", RPM2: " << rpm[1] << std::endl;
+    if(mc->waitForSync())
+    {
+      mc->getRPM(rpm);
+      std::cout << "RPM1: " << rpm[0] << " " << ", RPM2: " << rpm[1] << std::endl;
+    }
+    else
+    {
+      std::cout << "Error synchronizing with device" << std::endl;
+    }
   }
   else
   {
@@ -41,8 +47,8 @@ int main(int argc, char* argv[])
     std::cout << "Enabling motor controller failed" << std::endl;
     return -1;
   }
-  float gearRatio[2] = {131.f, 1024.f};
-  float encoderTicksPerRev[2] = {64.f, 14.f};
+  float gearRatio[2]          = {1024.f, 0.f};
+  float encoderTicksPerRev[2] = {14.f, 0.f};
   if(!mc.setGearRatio(gearRatio))
   {
     std::cout << "Setting gear ratio failed" << std::endl;
@@ -54,12 +60,9 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  int pwm[2];
-  float rpm[2];
   for(int i=0; i<500; i++)
   {
     float phase = ((float)i) * (2.f*M_PI) * 0.002;
-    std::cout << phase << std::endl;
     int val = (int)(sin(phase) * 100.f);
     setPWM(&mc, val);
   }
