@@ -1,7 +1,7 @@
 /**
  * @author Stefan May
  * @date 10.10.2015
- * @brief Protocol helper functions (conversion of data types to byte arrays)
+ * @brief Protocol helper functions for UART interface (conversion of data types to byte arrays)
  */
 
 #define VALUESCALE 100.f

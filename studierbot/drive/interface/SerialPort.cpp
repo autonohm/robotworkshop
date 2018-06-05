@@ -90,27 +90,6 @@ int SerialPort::send(char* msg, unsigned int len)
   return write(_fd, msg, len);
 }
 
-/*bool SerialPort::receive(short* msg, unsigned int len)
-{
-  if(len<6)
-  {
-    perror("buffer passed to receive method to small (min. 6)");
-    return false;
-  }
-  unsigned char buf[256];
-  ssize_t readBytes = read(_fd, buf, 12);
-  if(readBytes > 0)
-  {
-    for(int i=0; i<6; i++)
-      msg[i] = (buf[2*i+1] << 8) | buf[2*i];
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}*/
-
 bool SerialPort::receive(char* msg, unsigned int len)
 {
   ssize_t bytesRead = 0;
@@ -135,38 +114,10 @@ bool SerialPort::receive(char* msg, unsigned int len)
 
   if(bytesRead == bytesToRead)
   {
-    //std::cout << "ok" << std::endl;
     return true;
   }
   else
   {
-    //std::cout << "nok" << std::endl;
     return false;
   }
 }
-
-/*bool SerialPort::receive(int* msg, unsigned int len)
-{
-  unsigned char buf[256];
-  ssize_t bytesRead = 0;
-  ssize_t bytesToRead = len*sizeof(*msg);
-  ssize_t bytesAvailable = 0;
-  while(bytesRead!=bytesToRead)
-  {
-    errno = 0;
-    bytesAvailable = read(_fd, &(buf[bytesRead]), bytesToRead-bytesRead);
-    bytesRead += bytesAvailable;
-    //std::cout << "available: " << bytesAvailable << " errno: " <<  errno << " read: " << bytesRead << std::endl;
-  }
-  if(bytesRead == bytesToRead)
-  {
-    for(int i=0; i<len; i++)
-      msg[i] = (buf[4*i+3] << 24) | (buf[4*i+2] << 16) | (buf[4*i+1] << 8) | buf[4*i];
-
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}*/

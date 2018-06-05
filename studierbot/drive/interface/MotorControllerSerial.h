@@ -3,6 +3,12 @@
 
 #include "SerialPort.h"
 
+/**
+ * @class MotorControllerSerial
+ * @brief UART interface for 6-channel stackable motor controller.
+ * @author Stefan May
+ * @date 10.10.2015
+ */
 class MotorControllerSerial
 {
 public:

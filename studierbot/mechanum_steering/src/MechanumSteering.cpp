@@ -15,11 +15,12 @@ MechanumSteering::MechanumSteering(ChassisParams &chParams, MotorParams &mParams
   //_motor  = new MotorControllerSerial(*_mParams);
   _motor  = new MotorControllerCAN(*_mParams);
 
-  _leverage         = sqrt(chParams.wheelBase*chParams.wheelBase+chParams.track*chParams.track)/2.0;
+  _rad2rpm          = (chParams.wheelBase+chParams.track)/chParams.wheelDiameter; // (lx+ly)/2 * 1/r
+  _rpm2rad          = 1.0 / _rad2rpm;
   _ms2rpm           = 60.0/(chParams.wheelDiameter*M_PI);
   _rpm2ms           = 1.0 / _ms2rpm;
   _vMax             = _motor->getRPMMax() * _rpm2ms;
-  _omegaMax         = _vMax / (_leverage * sqrt(2)));
+  _omegaMax         = _motor->getRPMMax() * _rpm2rad;
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &MechanumSteering::joyCallback, this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &MechanumSteering::velocityCallback, this);
@@ -62,7 +63,7 @@ void MechanumSteering::run()
       _motor->setRPM(_rpm);
     }
 
-    run = ros::ok();// && !lag;
+    run = ros::ok();
 
     rate.sleep();
   }
@@ -73,14 +74,14 @@ void MechanumSteering::run()
 void MechanumSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
   // Assignment of joystick axes to motor commands
-  float fwd   = joy->axes[1];            // Range of values [-1:1]
-  float left  = joy->axes[0];            // Range of values [-1:1]
-  float turn  = joy->axes[2];            // Range of values [-1:1]
-  float speed = (joy->axes[3]+1.0)/2.0;  // Range of values [0:1]
+  float fwd      = joy->axes[1];            // Range of values [-1:1]
+  float left     = joy->axes[0];            // Range of values [-1:1]
+  float turn     = joy->axes[2];            // Range of values [-1:1]
+  float throttle = (joy->axes[3]+1.0)/2.0;  // Range of values [0:1]
 
-  float vFwd  = speed * fwd  * _vMax;
-  float vLeft = speed * left * _vMax;
-  float omega = speed * turn * _omegaMax;
+  float vFwd  = throttle * fwd  * _vMax;
+  float vLeft = throttle * left * _vMax;
+  float omega = throttle * turn * _omegaMax;
 
   normalizeAndMap(vFwd, vLeft, omega);
 }
@@ -94,16 +95,18 @@ void MechanumSteering::normalizeAndMap(float vFwd, float vLeft, float omega)
 {
   float rpmFwd   = vFwd  * _ms2rpm;
   float rpmLeft  = vLeft * _ms2rpm;
-  float rpmOmega = omega * sqrt(2)*_leverage * _ms2rpm;
+  float rpmOmega = omega * _rad2rpm;
 
   //cout << "vFwd: " << vFwd << "m/s, vLeft: " << vLeft << "m/s, omega: " << omega << endl;
   //cout << "rpmFwd: " << rpmFwd << ", rpmLeft: " << rpmLeft << ", rpmOmega: " << rpmOmega << endl;
 
-  _rpm[_chParams.frontLeft]  = -rpmFwd + rpmLeft + rpmOmega;
-  _rpm[_chParams.frontRight] =  rpmFwd + rpmLeft + rpmOmega;
-  _rpm[_chParams.rearLeft]   = -rpmFwd - rpmLeft + rpmOmega;
-  _rpm[_chParams.rearRight]  =  rpmFwd - rpmLeft + rpmOmega;
+  // leading signs -> see derivation: Stefan May, Skriptum Mobile Robotik
+  _rpm[_chParams.frontLeft]  = -rpmFwd + rpmLeft - rpmOmega;
+  _rpm[_chParams.frontRight] =  rpmFwd + rpmLeft - rpmOmega;
+  _rpm[_chParams.rearLeft]   = -rpmFwd - rpmLeft - rpmOmega;
+  _rpm[_chParams.rearRight]  =  rpmFwd - rpmLeft - rpmOmega;
 
+  // possibility to flip directions
   _rpm[0] *= _chParams.direction;
   _rpm[1] *= _chParams.direction;
   _rpm[2] *= _chParams.direction;

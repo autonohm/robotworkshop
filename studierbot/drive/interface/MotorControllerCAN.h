@@ -6,7 +6,7 @@
 
 /**
  * @class MotorControllerCAN
- * @brief CAN interface for Evocortex Centiped motor controller.
+ * @brief CAN interface for Evocortex Centipede motor controller.
  * @author Stefan May
  * @date 13.05.2018
  */

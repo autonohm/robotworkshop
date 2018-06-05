@@ -82,8 +82,11 @@ private:
   // conversion from revolutions per minute [RPM] to [m/s]
   float                  _rpm2ms;
 
-  // leverage for rotational movement, i.e. distance between kinematic center and wheel contact point
-  float                  _leverage;
+  // conversion from [rad/s] to revolutions per minute [RPM]
+  float                  _rad2rpm;
+
+  // conversion from revolutions per minute [RPM] to [rad/s]
+  float                  _rpm2rad;
 
   // time elapsed since last call
   ros::Time              _lastCmd;
