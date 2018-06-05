@@ -16,11 +16,10 @@ MechanumSteering::MechanumSteering(ChassisParams &chParams, MotorParams &mParams
   _motor  = new MotorControllerCAN(*_mParams);
 
   _leverage         = sqrt(chParams.wheelBase*chParams.wheelBase+chParams.track*chParams.track)/2.0;
-  _tangentialFactor = 1.0/cos(atan2(chParams.wheelBase, chParams.track)-(M_PI/4.0));
   _ms2rpm           = 60.0/(chParams.wheelDiameter*M_PI);
   _rpm2ms           = 1.0 / _ms2rpm;
-  _vMax             = _motor->getRPMMax() * _rpm2ms * sin(M_PI/4.0);
-  _omegaMax         = _vMax / (_tangentialFactor * _leverage);
+  _vMax             = _motor->getRPMMax() * _rpm2ms;
+  _omegaMax         = _vMax / (_leverage * sqrt(2)));
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &MechanumSteering::joyCallback, this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &MechanumSteering::velocityCallback, this);
@@ -93,26 +92,22 @@ void MechanumSteering::velocityCallback(const geometry_msgs::Twist::ConstPtr& cm
 
 void MechanumSteering::normalizeAndMap(float vFwd, float vLeft, float omega)
 {
-  float rpmFwd   = vFwd  / sin(M_PI/4.0) * _ms2rpm;
-  float rpmLeft  = vLeft / sin(M_PI/4.0) * _ms2rpm;
-  float rpmOmega = omega / sin(M_PI/4.0) * _tangentialFactor * _leverage * _ms2rpm;
+  float rpmFwd   = vFwd  * _ms2rpm;
+  float rpmLeft  = vLeft * _ms2rpm;
+  float rpmOmega = omega * sqrt(2)*_leverage * _ms2rpm;
 
   //cout << "vFwd: " << vFwd << "m/s, vLeft: " << vLeft << "m/s, omega: " << omega << endl;
   //cout << "rpmFwd: " << rpmFwd << ", rpmLeft: " << rpmLeft << ", rpmOmega: " << rpmOmega << endl;
 
-  _rpm[_chParams.frontLeft]  = rpmFwd - rpmLeft - rpmOmega;
-  _rpm[_chParams.rearLeft]   = rpmFwd + rpmLeft - rpmOmega;
-  _rpm[_chParams.frontRight] = rpmFwd + rpmLeft + rpmOmega;
-  _rpm[_chParams.rearRight]  = rpmFwd - rpmLeft + rpmOmega;
+  _rpm[_chParams.frontLeft]  = -rpmFwd + rpmLeft + rpmOmega;
+  _rpm[_chParams.frontRight] =  rpmFwd + rpmLeft + rpmOmega;
+  _rpm[_chParams.rearLeft]   = -rpmFwd - rpmLeft + rpmOmega;
+  _rpm[_chParams.rearRight]  =  rpmFwd - rpmLeft + rpmOmega;
 
   _rpm[0] *= _chParams.direction;
   _rpm[1] *= _chParams.direction;
   _rpm[2] *= _chParams.direction;
   _rpm[3] *= _chParams.direction;
-
-  // remap direction due to motor mounting (flip direction of left side)
-  _rpm[0] = -_rpm[0];
-  _rpm[1] = -_rpm[1];
 
   // Normalize values, if any value exceeds the maximum
   float rpmMax = std::abs(_rpm[0]);

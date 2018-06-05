@@ -38,6 +38,12 @@ public:
   bool disable();
 
   /**
+   * Get assigned channel via constructor
+   * @return channel
+   */
+  unsigned short getChannel();
+
+  /**
    * Set timeout interval. The motor controller needs frequently transmitted commands.
    * If the time span between two commands is longer than this timeout interval, the device is disabled.
    * The user needs to send an enabling command again.
@@ -112,6 +118,8 @@ private:
   unsigned long _idSyncSend;
 
   unsigned long _idSyncReceive;
+
+  unsigned short _channel;
 };
 
 #endif /* _MOTORCONTROLLERCAN_H_ */

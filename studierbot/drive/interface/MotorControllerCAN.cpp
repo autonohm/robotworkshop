@@ -34,7 +34,8 @@
 
 MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned short channel)
 {
-  _can   = can;
+  _channel   = channel;
+  _can       = can;
   _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | channel;
 
   canid_t canidOutput = GROUPID | SYSTEMID | COMPOUTPUT | channel;
@@ -66,6 +67,11 @@ bool MotorControllerCAN::disable()
   _cf.can_dlc = 1;
   _cf.data[0] = CMD_DISABLE;
   return _can->send(&_cf);
+}
+
+unsigned short MotorControllerCAN::getChannel()
+{
+  return _channel;
 }
 
 bool MotorControllerCAN::setTimeout(unsigned short timeoutInMillis)

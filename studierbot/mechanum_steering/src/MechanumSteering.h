@@ -85,9 +85,6 @@ private:
   // leverage for rotational movement, i.e. distance between kinematic center and wheel contact point
   float                  _leverage;
 
-  // correction factor to address non-quadratic chassis
-  float                  _tangentialFactor;
-
   // time elapsed since last call
   ros::Time              _lastCmd;
 };
