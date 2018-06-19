@@ -85,48 +85,16 @@ bool MotorControllerCAN::setTimeout(unsigned short timeoutInMillis)
 
 bool MotorControllerCAN::setGearRatio(float gearRatio[2])
 {
-  bool retval = true;
-
-  _cf.can_dlc = 5;
-  _cf.data[0] = CMD_GEARRATIO;
-  unsigned int* gr = (unsigned int*)&gearRatio[0];
-  _cf.data[1] = (*gr >> 24) & 0xFF;
-  _cf.data[2] = (*gr >> 16) & 0xFF;
-  _cf.data[3] = (*gr >> 8)  & 0xFF;
-  _cf.data[4] = *gr         & 0xFF;
-  retval = _can->send(&_cf);
-
-  _cf.data[0] = CMD_GEARRATIO2;
-  gr = (unsigned int*)&gearRatio[1];
-  _cf.data[1] = (*gr >> 24) & 0xFF;
-  _cf.data[2] = (*gr >> 16) & 0xFF;
-  _cf.data[3] = (*gr >> 8)  & 0xFF;
-  _cf.data[4] = *gr         & 0xFF;
-  retval &= _can->send(&_cf);
+  bool retval = sendFloat(CMD_GEARRATIO, gearRatio[0]);
+  retval &= sendFloat(CMD_GEARRATIO2, gearRatio[1]);
 
   return retval;
 }
 
 bool MotorControllerCAN::setEncoderTicksPerRev(float encoderTicksPerRev[2])
 {
-  bool retval = true;
-
-  _cf.can_dlc = 5;
-  _cf.data[0] = CMD_TICKSPERREV;
-  unsigned int* et = (unsigned int*)&encoderTicksPerRev[0];
-  _cf.data[1] = (*et >> 24) & 0xFF;
-  _cf.data[2] = (*et >> 16) & 0xFF;
-  _cf.data[3] = (*et >> 8)  & 0xFF;
-  _cf.data[4] = *et         & 0xFF;
-  retval = _can->send(&_cf);
-
-  et = (unsigned int*)&encoderTicksPerRev[1];
-  _cf.data[0] = CMD_TICKSPERREV2;
-  _cf.data[1] = (*et >> 24) & 0xFF;
-  _cf.data[2] = (*et >> 16) & 0xFF;
-  _cf.data[3] = (*et >> 8)  & 0xFF;
-  _cf.data[4] = *et         & 0xFF;
-  retval &= _can->send(&_cf);
+  bool retval = sendFloat(CMD_TICKSPERREV, encoderTicksPerRev[0]);
+  retval &= sendFloat(CMD_TICKSPERREV2, encoderTicksPerRev[1]);
 
   return retval;
 }
@@ -142,20 +110,50 @@ bool MotorControllerCAN::setPWM(int pwm[2])
   _cf.data[2] = (char)(vel2 + 0x7F);
 
   _idSyncSend++;
-  return _can->send(&_cf);;
+  return _can->send(&_cf);
 }
 
 bool MotorControllerCAN::setRPM(float rpm[2])
 {
-  std::cout << "setRPM method not implemented yet" << std::endl;
+  _cf.can_dlc = 5;
+
+  int vel1 = (int)(rpm[0]*10.f);
+  int vel2 = (int)(rpm[1]*10.f);
+  _cf.data[0] = CMD_SETRPM;
+  _cf.data[1] = (char)(vel1 >> 8) & 0xFF;
+  _cf.data[2] = (char)(vel1)      & 0xFF;
+  _cf.data[3] = (char)(vel2 >> 8) & 0xFF;
+  _cf.data[4] = (char)(vel2)      & 0xFF;
+
   _idSyncSend++;
-  return false;
+
+  return _can->send(&_cf);
 }
 
 void MotorControllerCAN::getRPM(float rpm[2])
 {
   rpm[0] = _rpm[0];
   rpm[1] = _rpm[1];
+}
+
+bool MotorControllerCAN::setKp(float kp)
+{
+  return sendFloat(CMD_CTL_KP, kp);
+}
+
+bool MotorControllerCAN::setKi(float ki)
+{
+  return sendFloat(CMD_CTL_KI, ki);
+}
+
+bool MotorControllerCAN::setKd(float kd)
+{
+  return sendFloat(CMD_CTL_KD, kd);
+}
+
+bool MotorControllerCAN::setInputWeight(float weight)
+{
+  return sendFloat(CMD_CTL_INPUTFILTER, weight);
 }
 
 void MotorControllerCAN::notify(struct can_frame* frame)
@@ -190,4 +188,20 @@ void MotorControllerCAN::stop()
   _cf.data[1] = 0x7F;
   _cf.data[2] = 0x7F;
   _can->send(&_cf);
+}
+
+bool MotorControllerCAN::sendFloat(int cmd, float f)
+{
+  _cf.can_dlc = 5;
+
+  _cf.data[0] = cmd;
+  int* ival = (int*)&f;
+  _cf.data[1] = (*ival & 0xFF000000) >> 24;
+  _cf.data[2] = (*ival & 0x00FF0000) >> 16;
+  _cf.data[3] = (*ival & 0x0000FF00) >> 8;
+  _cf.data[4] = (*ival & 0x000000FF);
+
+  _idSyncSend++;
+
+  return _can->send(&_cf);
 }

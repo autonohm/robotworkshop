@@ -17,25 +17,22 @@ void setPWM(MotorControllerCAN* mc, int val)
   pwm[1] = val;
   if(!mc->setPWM(pwm))
   {
-    std::cout << "Failed to set PWM value for channel" << mc->getChannel() << std::endl;
+    std::cout << "# Failed to set PWM value for channel" << mc->getChannel() << std::endl;
     usleep(1000);
   }
 }
 
-void waitForSync(MotorControllerCAN* mc)
+void setRPM(MotorControllerCAN* mc, float val)
 {
   float rpm[2];
-  if(mc->waitForSync())
+  rpm[0] = val;
+  rpm[1] = val;
+  if(!mc->setRPM(rpm))
   {
-    mc->getRPM(rpm);
-    std::cout << "Channel" << mc->getChannel() << " RPM1: " << rpm[0] << " " << ", RPM2: " << rpm[1] << std::endl;
-  }
-  else
-  {
-    std::cout << "Error synchronizing with device" << mc->getChannel() << std::endl;
+    std::cout << "# Failed to set RPM value for channel" << mc->getChannel() << std::endl;
+    usleep(1000);
   }
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -50,39 +47,79 @@ int main(int argc, char* argv[])
   mc.push_back(&mc2);
   mc.push_back(&mc3);
 
-  float gearRatio[2]          = {131.f, 131.f};
-  float encoderTicksPerRev[2] = {64.f, 64.f};
+  float gearRatio[2]          = {131.f, 3*24.f};
+  float encoderTicksPerRev[2] = {64.f,  20.f};
+  float inputWeight = 0.8f;
+  float kp = 2.f;
+  float ki = 200.f;
+  float kd = 0.f;
 
   can.startListener();
 
-  int dev = 0;
-  for(dev=0; dev<4; dev++)
+  unsigned int dev = 0;
+  for(dev=0; dev<mc.size(); dev++)
   {
     if(!mc[dev]->enable())
     {
-      std::cout << "Enabling motor controller failed of device " << dev << std::endl;
+      std::cout << "# Enabling motor controller failed for device " << dev << std::endl;
       return -1;
     }
     if(!mc[dev]->setGearRatio(gearRatio))
     {
-      std::cout << "Setting gear ratio failed of device " << dev << std::endl;
+      std::cout << "# Setting gear ratio failed for device " << dev << std::endl;
       return -1;
     }
     if(!mc[dev]->setEncoderTicksPerRev(encoderTicksPerRev))
     {
-      std::cout << "Setting encoder parameters failed of device " << dev << std::endl;
+      std::cout << "# Setting encoder parameters failed for device " << dev << std::endl;
+      return -1;
+    }
+    if(!mc[dev]->setKp(kp))
+    {
+      std::cout << "# Setting proportional factor of PID controller failed for device " << dev << std::endl;
+      return -1;
+    }
+    if(!mc[dev]->setKi(ki))
+    {
+      std::cout << "# Setting integration factor of PID controller failed for device " << dev << std::endl;
+      return -1;
+    }
+    if(!mc[dev]->setKd(kd))
+    {
+      std::cout << "# Setting differential factor of PID controller failed for device " << dev << std::endl;
+      return -1;
+    }
+    if(!mc[dev]->setInputWeight(inputWeight))
+    {
+      std::cout << "# Setting differential factor of PID controller failed for device " << dev << std::endl;
       return -1;
     }
     usleep(25000);
   }
 
-  for(int i=0; i<500; i++)
+  for(int i=0; i<50000; i++)
   {
-    float phase = ((float)i) * (2.f*M_PI) * 0.004;
-    int val = (int)(sin(phase) * 100.f);
-    for(dev=0; dev<4; dev++)
-      setPWM(mc[dev], val);
-    for(dev=0; dev<4; dev++)
-      waitForSync(mc[dev]);
+    float phase = ((float)i) * (2.f*M_PI) * 0.002;
+    float amplitude = 40.f;
+    float val = (sin(phase) * amplitude);
+    for(dev=0; dev<mc.size(); dev++)
+      //setPWM(mc[dev], val);
+      setRPM(mc[dev], val);
+
+    std::cout << val;
+    for(dev=0; dev<mc.size(); dev++)
+    {
+      if(mc[dev]->waitForSync())
+      {
+        float rpm[2];
+        mc[dev]->getRPM(rpm);
+        std::cout << " " << rpm[0] << " " << rpm[1];
+      }
+      else
+      {
+        std::cout << "# Error synchronizing with device" << mc[dev]->getChannel() << std::endl;
+      };
+    }
+    std::cout << std::endl;
   }
 }

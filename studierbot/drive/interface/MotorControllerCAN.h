@@ -87,6 +87,33 @@ public:
   void getRPM(float rpm[2]);
 
   /**
+   * Set proportional factor of PID controller
+   * @param[in] kp proportional factor
+   * @return success
+   */
+  bool setKp(float kp);
+
+  /**
+   * Set integration factor of PID controller
+   * @param[in] ki integration factor
+   * @return success
+   */
+  bool setKi(float ki);
+
+  /**
+   * Set differential factor of PID controller
+   * @param[in] kd differential factor
+   * @return success
+   */
+  bool setKd(float kd);
+
+  /**
+   * Set weight of input filter. Input values f are filtered with f'=weight*f'+(1-weight)*f.
+   * @weight filtering weight. A value of 0 disables the filter. The value must be in the range of [0;1[
+   */
+  bool setInputWeight(float weight);
+
+  /**
    * Wait for synchronization after a new PWM or RPM value is set.
    * @param[in] timeoutInMillis timeout period in milliseconds. A value of 0 disables the timeout check.
    * @return true==successful synchronization
@@ -101,6 +128,8 @@ public:
 protected:
 
 private:
+
+  bool sendFloat(int cmd, float f);
 
   /**
    * Implementation of inherited method from SocketCANObserver. This class is getting notified by the SocketCAN,

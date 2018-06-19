@@ -84,13 +84,14 @@ bool SocketCAN::startListener()
 
   _thread = new std::thread(&SocketCAN::listener, this);
 
+  while(!_listenerIsRunning)
+    usleep(100);
+
   return true;
 }
 
 bool SocketCAN::listener()
 {
-
-  _listenerIsRunning = true;
   _shutDownListener  = false;
 
   struct can_frame frame_rd;
@@ -99,10 +100,14 @@ bool SocketCAN::listener()
   struct timeval timeout = {0, 100};
   fd_set readSet;
 
-  std::cout << "Listener start" << std::endl;
+  std::cout << "# Listener start" << std::endl;
+
+  _listenerIsRunning = true;
   while(!_shutDownListener)
   {
     FD_ZERO(&readSet);
+
+    _mutex.lock();
     FD_SET(_soc, &readSet);
     if (select((_soc + 1), &readSet, NULL, NULL, &timeout) >= 0)
     {
@@ -111,19 +116,19 @@ bool SocketCAN::listener()
         recvbytes = read(_soc, &frame_rd, sizeof(struct can_frame));
         if(recvbytes)
         {
-          _mutex.lock();
           for(std::vector<SocketCANObserver*>::iterator it=_observers.begin(); it!=_observers.end(); ++it)
           {
             if((*it)->getCANId()==frame_rd.can_id)
               (*it)->notify(&frame_rd);
           }
-          _mutex.unlock();
         }
       }
     }
+    _mutex.unlock();
+
     usleep(100);
   }
-  std::cout << "Listener stop" << std::endl;
+  std::cout << "# Listener stop" << std::endl;
 
   _listenerIsRunning = false;
   return true;
