@@ -14,10 +14,12 @@
 #define CMD_ENABLE          0x01
 #define CMD_DISABLE         0x02
 #define CMD_SETTIMEOUT      0x03
+#define CMD_SETPWMMAX       0x04
 
 // Operating commands
 #define CMD_SETPWM          0x10
 #define CMD_SETRPM          0x11
+#define CMD_FREQ_SCALE      0x12
 
 // Closed/Open loop controller parameters
 #define CMD_CTL_KP          0x20
@@ -96,6 +98,35 @@ bool MotorControllerCAN::setEncoderTicksPerRev(float encoderTicksPerRev[2])
   bool retval = sendFloat(CMD_TICKSPERREV, encoderTicksPerRev[0]);
   retval &= sendFloat(CMD_TICKSPERREV2, encoderTicksPerRev[1]);
 
+  return retval;
+}
+
+bool MotorControllerCAN::setFrequencyScale(unsigned short scale)
+{
+  bool retval = false;
+
+  if(scale>0 && scale<=100)
+  {
+    _cf.can_dlc = 3;
+    _cf.data[0] = CMD_FREQ_SCALE;
+    _cf.data[1] = (scale >> 8) & 0xFF;
+    _cf.data[2] = scale & 0xFF;
+    retval = _can->send(&_cf);
+  }
+  return retval;
+}
+
+bool MotorControllerCAN::setMaxPulseWidth(unsigned char pulse)
+{
+  bool retval = false;
+
+  if(pulse<=127)
+  {
+    _cf.can_dlc = 2;
+    _cf.data[0] = CMD_SETPWMMAX;
+    _cf.data[1] = pulse;
+    retval = _can->send(&_cf);
+  }
   return retval;
 }
 

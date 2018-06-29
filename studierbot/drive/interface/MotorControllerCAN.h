@@ -67,6 +67,24 @@ public:
   bool setEncoderTicksPerRev(float encoderTicksPerRev[2]);
 
   /**
+   * Set scaling parameter for PWM frequency. The base frequency is 500kHz, of which one can apply a fractional amount, e.g.
+   * 10 => 50kHz
+   * 20 => 25kHz
+   * Default is 32 => 15,625kHz
+   * Important: This value can only be changed before the motor controllers gets enabled.
+   * @param[in] scale denominator d of term 1/d x 500kHz
+   */
+  bool setFrequencyScale(unsigned short scale);
+
+  /**
+   * The PWM signal can be adjusted in the range from [-127;127] which is equal to [-100%;100%].
+   * To limit the possible output, one can set a different value between [0;127],
+   * which is symmetrically applied to the positive and negative area, e.g. 32 => [-25%;25%]
+   * The default value is: 63 => [-50%;50%]
+   */
+  bool setMaxPulseWidth(unsigned char pulse);
+
+  /**
    * Set pulse width modulated signal
    * @param[in] rpm pulse width in range [-100;100], this device supports 2 channels
    * @return success
