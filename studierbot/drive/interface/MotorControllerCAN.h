@@ -4,6 +4,12 @@
 #include "SocketCAN.h"
 #include <vector>
 
+enum CanResponse
+{
+  CAN_RESPONSE_RPM,
+  CAN_RESPONSE_POS
+};
+
 /**
  * @class MotorControllerCAN
  * @brief CAN interface for Evocortex Centipede motor controller.
@@ -36,6 +42,13 @@ public:
    * @return successful transmission of disabling command
    */
   bool disable();
+
+  /**
+   * Configure response of motor controller (revolutions per minute or position)
+   * @param[in] mode response mode
+   * @return successful transmission of configure command
+   */
+  bool configureResponse(enum CanResponse mode);
 
   /**
    * Get assigned channel via constructor
@@ -105,6 +118,12 @@ public:
   void getRPM(float rpm[2]);
 
   /**
+   * Get motor position (encoder ticks).
+   * @param[out] pos position of motor 1 and 2. This is a modulo 2^15 value.
+   */
+  void getPos(short pos[2]);
+
+  /**
    * Set proportional factor of PID controller
    * @param[in] kp proportional factor
    * @return success
@@ -161,6 +180,8 @@ private:
   can_frame _cf;
 
   float _rpm[2];
+
+  short _pos[2];
 
   unsigned long _idSyncSend;
 

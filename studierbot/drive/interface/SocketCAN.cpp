@@ -70,6 +70,7 @@ bool SocketCAN::send(struct can_frame* frame)
   _mutex.unlock();
   if (retval != sizeof(struct can_frame))
   {
+    std::cout << "Can transmission error for command " << (int)(frame->data[0]) << ", returned " << retval << " submitted bytes instead of " << sizeof(struct can_frame) << std::endl;
     return false;
   }
   else

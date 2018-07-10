@@ -15,6 +15,8 @@
 #define CMD_DISABLE         0x02
 #define CMD_SETTIMEOUT      0x03
 #define CMD_SETPWMMAX       0x04
+#define CMD_SENDRPM         0x05
+#define CMD_SENDPOS         0x06
 
 // Operating commands
 #define CMD_SETPWM          0x10
@@ -33,6 +35,14 @@
 #define CMD_GEARRATIO2      0x31
 #define CMD_TICKSPERREV     0x32
 #define CMD_TICKSPERREV2    0x33
+
+// Standard responses
+#define RESPONSE_RPM        0xA0
+#define RESPONSE_POS        0xA1
+
+// Error responses
+#define ERR_ENCA_NOSIGNAL   0xE0
+#define ERR_ENCB_NOSIGNAL   0xE1
 
 MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned short channel)
 {
@@ -68,6 +78,16 @@ bool MotorControllerCAN::disable()
 {
   _cf.can_dlc = 1;
   _cf.data[0] = CMD_DISABLE;
+  return _can->send(&_cf);
+}
+
+bool MotorControllerCAN::configureResponse(enum CanResponse mode)
+{
+  _cf.can_dlc = 1;
+  if(mode==CAN_RESPONSE_RPM)
+    _cf.data[0] = CMD_SENDRPM;
+  else
+    _cf.data[0] = CMD_SENDPOS;
   return _can->send(&_cf);
 }
 
@@ -167,6 +187,12 @@ void MotorControllerCAN::getRPM(float rpm[2])
   rpm[1] = _rpm[1];
 }
 
+void MotorControllerCAN::getPos(short pos[2])
+{
+  pos[0] = _pos[0];
+  pos[1] = _pos[1];
+}
+
 bool MotorControllerCAN::setKp(float kp)
 {
   return sendFloat(CMD_CTL_KP, kp);
@@ -191,10 +217,22 @@ void MotorControllerCAN::notify(struct can_frame* frame)
 {
   if(frame->can_dlc==5)
   {
-    short val1 = (frame->data[1] | (frame->data[2] << 8));
-    short val2 = (frame->data[3] | (frame->data[4] << 8));
-    _rpm[0] = ((float)val1)/10.f;
-    _rpm[1] = ((float)val2)/10.f;
+    if(frame->data[0] == RESPONSE_RPM)
+    {
+      short val1 = (frame->data[1] | (frame->data[2] << 8));
+      short val2 = (frame->data[3] | (frame->data[4] << 8));
+      _rpm[0] = ((float)val1)/10.f;
+      _rpm[1] = ((float)val2)/10.f;
+      _pos[0] = 0.f;
+      _pos[1] = 0.f;
+    }
+    else if(frame->data[0] == RESPONSE_POS)
+    {
+      _rpm[0] = 0.f;
+      _rpm[1] = 0.f;
+      _pos[0] = (frame->data[1] | (frame->data[2] << 8));
+      _pos[1] = (frame->data[3] | (frame->data[4] << 8));
+    }
     _idSyncReceive = _idSyncSend;
   }
 }
@@ -214,7 +252,6 @@ bool MotorControllerCAN::waitForSync(unsigned int timeoutInMillis)
 void MotorControllerCAN::stop()
 {
   _cf.can_dlc = 3;
-
   _cf.data[0] = CMD_SETPWM;
   _cf.data[1] = 0x7F;
   _cf.data[2] = 0x7F;

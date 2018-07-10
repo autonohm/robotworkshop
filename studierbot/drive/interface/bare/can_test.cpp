@@ -47,14 +47,15 @@ int main(int argc, char* argv[])
   mc.push_back(&mc2);
   mc.push_back(&mc3);
 
-  float gearRatio[2]            = {131.f, 3*24.f};
-  float encoderTicksPerRev[2]   = {64.f,  20.f};
+  float gearRatio[2]            = {131.f, 131.f};
+  float encoderTicksPerRev[2]   = {64.f,  64.f};
   unsigned short frequencyScale = 32;   // PWM frequency: 1/frequencyScale x 500kHz
-  unsigned char maxPulse        = 64;   // Set maxPulse to 127 to apply full power
+  unsigned char maxPulse        = 127;   // Set maxPulse to 127 to apply full power
   float inputWeight             = 0.8f; // Smoothing parameter for input values: smoothVal = inputWeight x prevVal + (1.f-inputWeight) x newVal
   float kp                      = 2.f;
   float ki                      = 200.f;
   float kd                      = 0.f;
+  CanResponse responseMode      = CAN_RESPONSE_RPM;
 
   can.startListener();
 
@@ -66,67 +67,90 @@ int main(int argc, char* argv[])
       std::cout << "# Setting frequency scaling parameter failed for device " << dev << std::endl;
       return -1;
     }
+    usleep(1000);
     if(!mc[dev]->enable())
     {
       std::cout << "# Enabling motor controller failed for device " << dev << std::endl;
       return -1;
     }
+    usleep(1000);
     if(!mc[dev]->setMaxPulseWidth(maxPulse))
     {
       std::cout << "# Setting maximum pulse width failed for device " << dev << std::endl;
       return -1;
     }
+    usleep(1000);
     if(!mc[dev]->setGearRatio(gearRatio))
     {
       std::cout << "# Setting gear ratio failed for device " << dev << std::endl;
       return -1;
     }
+    usleep(1000);
     if(!mc[dev]->setEncoderTicksPerRev(encoderTicksPerRev))
     {
       std::cout << "# Setting encoder parameters failed for device " << dev << std::endl;
       return -1;
     }
+    usleep(1000);
     if(!mc[dev]->setKp(kp))
     {
       std::cout << "# Setting proportional factor of PID controller failed for device " << dev << std::endl;
       return -1;
     }
+    usleep(1000);
     if(!mc[dev]->setKi(ki))
     {
       std::cout << "# Setting integration factor of PID controller failed for device " << dev << std::endl;
       return -1;
     }
+    usleep(1000);
     if(!mc[dev]->setKd(kd))
     {
       std::cout << "# Setting differential factor of PID controller failed for device " << dev << std::endl;
       return -1;
     }
+    usleep(1000);
     if(!mc[dev]->setInputWeight(inputWeight))
     {
       std::cout << "# Setting differential factor of PID controller failed for device " << dev << std::endl;
       return -1;
     }
+    usleep(1000);
+    if(!mc[dev]->configureResponse(responseMode))
+    {
+      std::cout << "# Setting response mode failed for device " << dev << std::endl;
+      return -1;
+    }
     usleep(25000);
   }
 
-  for(int i=0; i<500; i++)
+  for(int i=0; i<1000000; i++)
   {
     float phase = ((float)i) * (2.f*M_PI) * 0.002;
-    float amplitude = 40.f;
+    float amplitude = 20.f;
     float val = (sin(phase) * amplitude);
     //float val = amplitude;
     for(dev=0; dev<mc.size(); dev++)
-      setPWM(mc[dev], val);
-      //setRPM(mc[dev], val);
+      //setPWM(mc[dev], val);
+      setRPM(mc[dev], val);
 
     std::cout << val;
     for(dev=0; dev<mc.size(); dev++)
     {
       if(mc[dev]->waitForSync())
       {
-        float rpm[2];
-        mc[dev]->getRPM(rpm);
-        std::cout << " " << rpm[0] << " " << rpm[1];
+        if(responseMode==CAN_RESPONSE_RPM)
+        {
+          float rpm[2];
+          mc[dev]->getRPM(rpm);
+          std::cout << " " << rpm[0] << " " << rpm[1];
+        }
+        else
+        {
+          short pos[2];
+          mc[dev]->getPos(pos);
+          std::cout << " " << pos[0] << " " << pos[1];
+        }
       }
       else
       {
@@ -134,5 +158,6 @@ int main(int argc, char* argv[])
       };
     }
     std::cout << std::endl;
+    usleep(10000);
   }
 }
