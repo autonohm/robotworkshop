@@ -44,6 +44,12 @@ public:
   bool disable();
 
   /**
+   * Send synchronization signal, resetting a counter in order to have a common time basis on all controllers
+   * @return successful transmission of synchronization signal
+   */
+  bool broadcastExternalSync();
+
+  /**
    * Configure response of motor controller (revolutions per minute or position)
    * @param[in] mode response mode
    * @return successful transmission of configure command

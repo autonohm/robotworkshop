@@ -22,6 +22,7 @@
 #define CMD_SETPWM          0x10
 #define CMD_SETRPM          0x11
 #define CMD_FREQ_SCALE      0x12
+#define CMD_EXT_SYN         0x13
 
 // Closed/Open loop controller parameters
 #define CMD_CTL_KP          0x20
@@ -79,6 +80,16 @@ bool MotorControllerCAN::disable()
   _cf.can_dlc = 1;
   _cf.data[0] = CMD_DISABLE;
   return _can->send(&_cf);
+}
+
+bool MotorControllerCAN::broadcastExternalSync()
+{
+  _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | 0x1F;
+  _cf.can_dlc = 1;
+  _cf.data[0] = CMD_EXT_SYN;
+  bool retval = _can->send(&_cf);;
+  _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | _channel;
+  return retval;
 }
 
 bool MotorControllerCAN::configureResponse(enum CanResponse mode)

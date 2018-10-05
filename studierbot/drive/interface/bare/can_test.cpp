@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   mc.push_back(&mc0);
   mc.push_back(&mc1);
   mc.push_back(&mc2);
-  mc.push_back(&mc3);
+  //mc.push_back(&mc3);
 
   float gearRatio[2]            = {131.f, 131.f};
   float encoderTicksPerRev[2]   = {64.f,  64.f};
@@ -126,8 +126,11 @@ int main(int argc, char* argv[])
 
   for(int i=0; i<1000000; i++)
   {
+    if(i%50==0)
+      mc[0]->broadcastExternalSync();
+
     float phase = ((float)i) * (2.f*M_PI) * 0.002;
-    float amplitude = 20.f;
+    float amplitude = 40.f;
     float val = (sin(phase) * amplitude);
     //float val = amplitude;
     for(dev=0; dev<mc.size(); dev++)
