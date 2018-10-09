@@ -6,10 +6,37 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../drive/interface/MotorControllerSerial.h"
 #include "../../drive/interface/MotorControllerCAN.h"
 
 using namespace std;
+
+struct ChassisParams
+{
+  float track;
+  float wheelBase;
+  float wheelDiameter;
+  int   frontLeft;
+  int   frontRight;
+  int   centerLeft;
+  int   centerRight;
+  int   rearLeft;
+  int   rearRight;
+  int   direction;
+
+  ChassisParams()
+  {
+    track         = 0.f;
+    wheelBase     = 0.f;
+    wheelDiameter = 0.f;
+    frontLeft     = 0;
+    frontRight    = 0;
+    centerLeft    = 0;
+    centerRight   = 0;
+    rearLeft      = 0;
+    rearRight     = 0;
+    direction     = 0;
+  }
+};
 
 /**
  * @class Main class for robot drives based on mechanum steering
@@ -65,10 +92,10 @@ private:
 
   ChassisParams          _chParams;
   MotorParams*           _mParams;
-  MotorController*       _motor;
+  MotorControllerCAN*    _motor;
 
-  // revolutions per minute for each channel (only 4 of 6 channels are used)
-  float                  _rpm[6];
+  // revolutions per minute for each channel
+  float                  _rpm[4];
 
   // maximum velocity [m/s]
   float                  _vMax;

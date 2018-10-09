@@ -7,11 +7,11 @@ using namespace std;
 SkidSteering::SkidSteering(ChassisParams &chParams, MotorParams &params)
 {
 
-  _motor = new MotorControllerSerial(params);
+  //_motor = new MotorControllerCAN();
   _chParams = chParams;
   _track                = _chParams.track;
   _pinionCircumference  = _chParams.wheelDiameter * M_PI;
-  _vMax                 = _motor->getRPMMax() * _pinionCircumference / 60.f;
+  //_vMax                 = _motor->getRPMMax() * _pinionCircumference / 60.f;
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &SkidSteering::joyCallback,      this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &SkidSteering::velocityCallback, this);
@@ -58,7 +58,9 @@ void SkidSteering::run()
 
       //cout << _vl << " " << _vr << " " << _vMax << " " << rpmLeft << " " << rpmRight << endl;
       _motor->setRPM(_rpm);
-      cout << _motor->getRPM(0) << " " << _motor->getRPM(1) << endl;
+      _motor->setRPM(&(_rpm[2]));
+      _motor->setRPM(&(_rpm[4]));
+      //cout << _motor->getRPM(0) << " " << _motor->getRPM(1) << endl;
     }
 
     run = ros::ok();// && !lag;

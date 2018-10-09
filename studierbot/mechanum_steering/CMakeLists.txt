@@ -106,11 +106,10 @@ include_directories(
 add_executable(mechanum_steering_node
  src/mechanum_steering_node.cpp
  src/MechanumSteering.cpp
-  ../drive/interface/MotorController.cpp
-  ../drive/interface/MotorControllerCAN.cpp
-  ../drive/interface/MotorControllerSerial.cpp 
-   ../drive/interface/control.cpp
-   ../drive/interface/SerialPort.cpp
+ ../drive/interface/SocketCAN.cpp
+ ../drive/interface/SocketCANObserver.cpp
+ ../drive/interface/MotorControllerCAN.cpp
+ ../drive/interface/control.cpp
 )
 
 ## Add cmake target dependencies of the executable/library

@@ -12,15 +12,14 @@ MechanumSteering::MechanumSteering(ChassisParams &chParams, MotorParams &mParams
   if(_chParams.direction>0) _chParams.direction = 1;
   else _chParams.direction = -1;
 
-  //_motor  = new MotorControllerSerial(*_mParams);
-  _motor  = new MotorControllerCAN(*_mParams);
+  //_motor  = new MotorControllerCAN(*_mParams);
 
   _rad2rpm          = (chParams.wheelBase+chParams.track)/chParams.wheelDiameter; // (lx+ly)/2 * 1/r
   _rpm2rad          = 1.0 / _rad2rpm;
   _ms2rpm           = 60.0/(chParams.wheelDiameter*M_PI);
   _rpm2ms           = 1.0 / _ms2rpm;
-  _vMax             = _motor->getRPMMax() * _rpm2ms;
-  _omegaMax         = _motor->getRPMMax() * _rpm2rad;
+  //_vMax             = _motor->getRPMMax() * _rpm2ms;
+  //_omegaMax         = _motor->getRPMMax() * _rpm2rad;
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &MechanumSteering::joyCallback, this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &MechanumSteering::velocityCallback, this);
@@ -61,6 +60,7 @@ void MechanumSteering::run()
     else
     {
       _motor->setRPM(_rpm);
+      _motor->setRPM(&(_rpm[2]));
     }
 
     run = ros::ok();

@@ -4,6 +4,48 @@
 #include "SocketCAN.h"
 #include <vector>
 
+struct MotorParams
+{
+  std::string comPort;
+  float       gearRatio;
+  float       encoderRatio;
+  float       rpmMax;
+  float       kp;
+  float       ki;
+  float       kd;
+  int         antiWindup;
+
+  /**
+   * Standard constructor assigns default parameters
+   */
+  MotorParams()
+  {
+    comPort      = std::string("/dev/frdm_dc_shield");
+    gearRatio    = 0.f;
+    encoderRatio = 0.f;
+    rpmMax       = 0.f;
+    kp           = 1.f;
+    ki           = 0.f;
+    kd           = 0.f;
+    antiWindup   = 1;
+  }
+
+  /**
+   * Copy constructor
+   * @param[in] p parameter instance to be copied
+   */
+  MotorParams(const MotorParams &p)
+  {
+    gearRatio = p.gearRatio;
+    encoderRatio = p.encoderRatio;
+    rpmMax = p.rpmMax;
+    kp = p.kp;
+    ki = p.ki;
+    kd = p.kd;
+    antiWindup = p.antiWindup;
+  }
+};
+
 enum CanResponse
 {
   CAN_RESPONSE_RPM,
