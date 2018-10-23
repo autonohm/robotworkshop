@@ -45,13 +45,13 @@
 #define ERR_ENCA_NOSIGNAL   0xE0
 #define ERR_ENCB_NOSIGNAL   0xE1
 
-MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned short channel)
+MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned short canID)
 {
-  _channel   = channel;
+  _canID     = canID;
   _can       = can;
-  _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | channel;
+  _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | canID;
 
-  canid_t canidOutput = GROUPID | SYSTEMID | COMPOUTPUT | channel;
+  canid_t canidOutput = GROUPID | SYSTEMID | COMPOUTPUT | canID;
 
   setCANId(canidOutput);
   can->registerObserver(this);
@@ -88,7 +88,7 @@ bool MotorControllerCAN::broadcastExternalSync()
   _cf.can_dlc = 1;
   _cf.data[0] = CMD_EXT_SYN;
   bool retval = _can->send(&_cf);;
-  _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | _channel;
+  _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | _canID;
   return retval;
 }
 
@@ -102,9 +102,9 @@ bool MotorControllerCAN::configureResponse(enum CanResponse mode)
   return _can->send(&_cf);
 }
 
-unsigned short MotorControllerCAN::getChannel()
+unsigned short MotorControllerCAN::getCanId()
 {
-  return _channel;
+  return _canID;
 }
 
 bool MotorControllerCAN::setTimeout(unsigned short timeoutInMillis)

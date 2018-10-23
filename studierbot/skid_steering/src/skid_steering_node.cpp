@@ -22,7 +22,7 @@ int main(int argc, char** argv)
   nh.param("chRearLeft",    chParams.rearLeft,        4);
   nh.param("chRearRight",   chParams.rearRight,       5);
   nh.param("direction",     chParams.direction,       1);
-  nh.param("comPort",       motorParams.comPort,      std::string("/dev/frdm_dc_shield"));
+  nh.param("canInterface",  motorParams.canInterface, std::string("slcan0"));
   nh.param("gearRatio",     motorParams.gearRatio,    131.f);
   nh.param("encoderRatio",  motorParams.encoderRatio, 64.f);
   nh.param("rpmMax",        motorParams.rpmMax,       80.f);

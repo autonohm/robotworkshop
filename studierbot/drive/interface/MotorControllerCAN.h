@@ -22,9 +22,9 @@ public:
   /**
    * Constructor
    * @param[in] can SocketCAN instance
-   * @param[in] channel Identifier of CAN node, i.e. channel in range [0;15]
+   * @param[in] canID Identifier of CAN node, i.e. ID in range [0;15]
    */
-  MotorControllerCAN(SocketCAN* can, unsigned short channel);
+  MotorControllerCAN(SocketCAN* can, unsigned short canID);
 
   /**
    * Destructor
@@ -57,10 +57,10 @@ public:
   bool configureResponse(enum CanResponse mode);
 
   /**
-   * Get assigned channel via constructor
-   * @return channel
+   * Get assigned canID via constructor
+   * @return ID
    */
-  unsigned short getChannel();
+  unsigned short getCanId();
 
   /**
    * Set timeout interval. The motor controller needs frequently transmitted commands.
@@ -193,7 +193,7 @@ private:
 
   unsigned long _idSyncReceive;
 
-  unsigned short _channel;
+  unsigned short _canID;
 };
 
 #endif /* _MOTORCONTROLLERCAN_H_ */

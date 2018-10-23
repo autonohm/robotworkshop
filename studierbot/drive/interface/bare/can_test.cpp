@@ -17,7 +17,7 @@ void setPWM(MotorControllerCAN* mc, int val)
   pwm[1] = val;
   if(!mc->setPWM(pwm))
   {
-    std::cout << "# Failed to set PWM value for channel" << mc->getChannel() << std::endl;
+    std::cout << "# Failed to set PWM values for CAN ID" << mc->getCanId() << std::endl;
     usleep(1000);
   }
 }
@@ -29,7 +29,7 @@ void setRPM(MotorControllerCAN* mc, float val)
   rpm[1] = val;
   if(!mc->setRPM(rpm))
   {
-    std::cout << "# Failed to set RPM value for channel" << mc->getChannel() << std::endl;
+    std::cout << "# Failed to set RPM values for CAN ID" << mc->getCanId() << std::endl;
     usleep(1000);
   }
 }
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
       }
       else
       {
-        std::cout << "# Error synchronizing with device" << mc[dev]->getChannel() << std::endl;
+        std::cout << "# Error synchronizing with device" << mc[dev]->getCanId() << std::endl;
       };
     }
     std::cout << std::endl;
