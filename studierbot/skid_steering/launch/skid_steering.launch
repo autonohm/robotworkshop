@@ -12,6 +12,10 @@
     <!-- Socket CAN interface -->
     <param name="canInterface"       value="slcan0"/>
     
+    <param name="frequencyScale"     value="50"/>
+    <param name="maxPulseWidth"      value="127"/>
+    <param name="inputWeight"        value="0.8"/>
+
     <!-- Gearmotor/Encoder parameters -->
     <!-- Tested motors are: -->
     <!-- 131:1 Metal Gearmotor 37Dx57L mm with 64 CPR Encoder -->
@@ -48,7 +52,7 @@
     <param name="direction"     value="-1"/>
     
     <!-- PID controller parameters -->
-    <param name="kp"            value="2.0"/>
+    <param name="kp"            value="3.0"/>
     <param name="ki"            value="200.0"/>
     <param name="kd"            value="0.0"/>
     <param name="antiWindup"    value="1"/>

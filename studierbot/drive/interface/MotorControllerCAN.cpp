@@ -45,8 +45,26 @@
 #define ERR_ENCA_NOSIGNAL   0xE0
 #define ERR_ENCB_NOSIGNAL   0xE1
 
-MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned int canID, MotorParams params)
+MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned int canID, MotorParams params, bool verbosity)
 {
+  if(verbosity)
+  {
+    std::cout << std::endl << "--- Motor #" << canID << " parameters ---" << std::endl;
+    std::cout << "frequencyScale = " << params.frequencyScale << std::endl;
+    std::cout << "inputWeight    = " << params.inputWeight << std::endl;
+    std::cout << "maxPulseWidth  = " << (int)params.maxPulseWidth << std::endl;
+    std::cout << "timeout        = " << params.timeout << std::endl;
+    std::cout << "gearRatio      = " << params.gearRatio << std::endl;
+    std::cout << "encoderRatio   = " << params.encoderRatio << std::endl;
+    std::cout << "rpmMax         = " << params.rpmMax << std::endl;
+    std::cout << "responseMode   = " << params.responseMode << std::endl;
+    std::cout << "kp             = " << params.kp << std::endl;
+    std::cout << "ki             = " << params.ki << std::endl;
+    std::cout << "kd             = " << params.kd << std::endl;
+    std::cout << "antiWindup     = " << params.antiWindup << std::endl;
+    std::cout << "---------------------------" << std::endl << std::endl;
+  }
+
   _params    = params;
   _can       = can;
   _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | canID;

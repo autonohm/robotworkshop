@@ -31,7 +31,7 @@ struct MotorParams
   MotorParams()
   {
     frequencyScale = 32;
-    inputWeight    = 1.f;
+    inputWeight    = 0.8f;
     maxPulseWidth  = 63;
     timeout        = 100;
     gearRatio      = 0.f;
@@ -77,9 +77,11 @@ public:
   /**
    * Constructor
    * @param[in] can SocketCAN instance
+   * @param[in] canID Identifier of Motorshield (CAN address selector)
    * @param[in] params motor parameters
+   * @param[in] verbosity verbosity output flag
    */
-  MotorControllerCAN(SocketCAN* can, unsigned int canID, MotorParams params);
+  MotorControllerCAN(SocketCAN* can, unsigned int canID, MotorParams params, bool verbosity=0);
 
   /**
    * Destructor
