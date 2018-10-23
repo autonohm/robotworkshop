@@ -6,9 +6,49 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../drive/interface/MotorControllerSerial.h"
+#include "../../drive/interface/MotorControllerCAN.h"
 
 using namespace std;
+
+struct WheelParams
+{
+  int id;      // ID of motor controller board, i.e., CAN ID
+  int channel; // Channel of motor controller board, i.e., either 0 or 1
+};
+
+struct ChassisParams
+{
+  float track;
+  float wheelBase;
+  float wheelDiameter;
+  WheelParams frontLeft;
+  WheelParams frontRight;
+  WheelParams centerLeft;
+  WheelParams centerRight;
+  WheelParams rearLeft;
+  WheelParams rearRight;
+  int   direction;
+
+  ChassisParams()
+  {
+    track               = 0.f;
+    wheelBase           = 0.f;
+    wheelDiameter       = 0.f;
+    frontLeft.id        = 0;
+    frontLeft.channel   = 0;
+    frontRight.id       = 0;
+    frontRight.channel  = 0;
+    centerLeft.id       = 0;
+    centerLeft.channel  = 0;
+    centerRight.id      = 0;
+    centerRight.channel = 0;
+    rearLeft.id         = 0;
+    rearLeft.channel    = 0;
+    rearRight.id        = 0;
+    rearRight.channel   = 0;
+    direction           = 0;
+  }
+};
 
 /**
  * @class Main class for robot drives based on skid steering
@@ -76,10 +116,7 @@ private:
   ros::Subscriber        _velSub;
 
   ChassisParams          _chassisParams;
-  MotorControllerCAN*    _motor;
-
-  // revolutions per minute for each channel (only 2 of 6 channels are used)
-  float                  _rpm[6];
+  MotorControllerCAN*    _mc[3];
 
   float                  _vl, _vr;
 

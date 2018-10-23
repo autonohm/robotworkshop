@@ -1,28 +1,28 @@
 <launch>
   <node pkg="skid_steering" type="skid_steering_node" name="skid_steering_node" output="screen">
     <!-- Distance between wheel/track contact points of left and right side -->
-    <param name="track"         value="0.28"/>
+    <param name="track"         value="0.235"/>
     
     <!-- Distance between wheel/track contact points of front and rear axle -->
-    <param name="wheelBase"     value="0.0"/>
+    <param name="wheelBase"     value="0.32"/>
     
     <!-- Diameter of driving wheel(s). For tracks use the diameter of the pinion -->
     <param name="wheelDiameter" value="0.12"/>
     
-    <!-- Serial motor controller interface -->
-    <param name="comPort"       value="/dev/frdm_dc_shield"/>
+    <!-- Socket CAN interface -->
+    <param name="canInterface"       value="slcan0"/>
     
     <!-- Gearmotor/Encoder parameters -->
     <!-- Tested motors are: -->
     <!-- 131:1 Metal Gearmotor 37Dx57L mm with 64 CPR Encoder -->
-    <param name="gearRatio"     value="131.0"/>
-    <param name="encoderRatio"  value="64.0"/>
-    <param name="rpmMax"        value="80.0"/>
+    <!-- <param name="gearRatio"     value="131.0"/>
+         <param name="encoderRatio"  value="64.0"/>
+         <param name="rpmMax"        value="80.0"/> -->
     
     <!-- 99:1 Metal Gearmotor 25Dx54L mm MP 12V with 48 CPR Encoder -->
-    <!-- <param name="gearRatio"     value="99.0"/>
+         <param name="gearRatio"     value="99.0"/>
          <param name="encoderRatio"  value="48.0"/>
-         <param name="rpmMax"        value="76.0"/> -->
+         <param name="rpmMax"        value="100.0"/>
     
     <!-- Nexus DC Motor 16002, Faulhaber 2342G012CR, 64:1 -->
     <!-- <param name="gearRatio"     value="64.0"/>
@@ -30,11 +30,17 @@
          <param name="rpmMax"        value="120.0"/> -->
     
     <!-- Channel assignment to motor mounting -->
-    <param name="chFrontLeft"   value="3"/>
-    <param name="chFrontRight"  value="2"/>
-    <param name="chCenterLeft"  value="5"/>
-    <param name="chCenterRight" value="4"/>
+    <param name="idFrontLeft"   value="2"/>
+    <param name="chFrontLeft"   value="1"/>
+    <param name="idFrontRight"  value="2"/>
+    <param name="chFrontRight"  value="0"/>
+    <param name="idCenterLeft"  value="1"/>
+    <param name="chCenterLeft"  value="1"/>
+    <param name="idCenterRight" value="1"/>
+    <param name="chCenterRight" value="0"/>
+    <param name="idRearLeft"    value="0"/>
     <param name="chRearLeft"    value="1"/>
+    <param name="idRearRight"   value="0"/>
     <param name="chRearRight"   value="0"/>
     
     <!-- Polarity parameter, accepted values are 1 and -1. -->
@@ -42,8 +48,8 @@
     <param name="direction"     value="-1"/>
     
     <!-- PID controller parameters -->
-    <param name="kp"            value="0.5"/>
-    <param name="ki"            value="5.0"/>
+    <param name="kp"            value="2.0"/>
+    <param name="ki"            value="200.0"/>
     <param name="kd"            value="0.0"/>
     <param name="antiWindup"    value="1"/>
   </node>

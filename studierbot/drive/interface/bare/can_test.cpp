@@ -38,7 +38,6 @@ void setRPM(MotorControllerCAN* mc, float val)
 int main(int argc, char* argv[])
 {
   MotorParams motorParams;
-  motorParams.canID          = 0;
   motorParams.frequencyScale = 32;    // PWM frequency: 1/frequencyScale x 500kHz
   motorParams.inputWeight    = 0.8f;  // Smoothing parameter for input values: smoothVal = inputWeight x prevVal + (1.f-inputWeight) x newVal
   motorParams.maxPulseWidth  = 127;   // Set maxPulse to 127 to apply full power
@@ -59,8 +58,7 @@ int main(int argc, char* argv[])
   unsigned int dev = 0;
   for(dev=0; dev<_INSTANCES; dev++)
   {
-    motorParams.canID = dev;
-    MotorControllerCAN* m = new MotorControllerCAN(&can, motorParams);
+    MotorControllerCAN* m = new MotorControllerCAN(&can, dev, motorParams);
     mc.push_back(m);
   }
 
@@ -83,7 +81,7 @@ int main(int argc, char* argv[])
       if(mc[dev]->waitForSync())
       {
         float response[2];
-        mc[dev]->getMotionResponse(response);
+        mc[dev]->getWheelResponse(response);
         std::cout << " " << response[0] << " " << response[1];
       }
       else

@@ -7,8 +7,10 @@ using namespace std;
 SkidSteering::SkidSteering(ChassisParams &chassisParams, MotorParams &motorParams, SocketCAN &can)
 {
 
-  _motor = new MotorControllerCAN(&can, motorParams);
-  _chassisParams = chassisParams;
+  _mc[0]                = new MotorControllerCAN(&can, 0, motorParams);
+  _mc[1]                = new MotorControllerCAN(&can, 1, motorParams);
+  _mc[2]                = new MotorControllerCAN(&can, 2, motorParams);
+  _chassisParams        = chassisParams;
   _track                = _chassisParams.track;
   _pinionCircumference  = _chassisParams.wheelDiameter * M_PI;
   _vMax                 = motorParams.rpmMax * _pinionCircumference / 60.f;
@@ -18,18 +20,13 @@ SkidSteering::SkidSteering(ChassisParams &chassisParams, MotorParams &motorParam
 
   _vl     = 0.0;
   _vr     = 0.0;
-
-  _rpm[0] = 0.0;
-  _rpm[1] = 0.0;
-  _rpm[2] = 0.0;
-  _rpm[3] = 0.0;
-  _rpm[4] = 0.0;
-  _rpm[5] = 0.0;
 }
 
 SkidSteering::~SkidSteering()
 {
-  delete _motor;
+  delete _mc[0];
+  delete _mc[1];
+  delete _mc[2];
 }
 
 void SkidSteering::run()
@@ -52,16 +49,28 @@ void SkidSteering::run()
     {
       float rpmLeft  = trackspeedToRPM(_vl);
       float rpmRight = trackspeedToRPM(_vr);
-      /*if(_chassisParams.frontLeft   >= 0)  _rpm[_chassisParams.frontLeft]   = rpmLeft;
-      if(_chassisParams.centerLeft  >= 0)  _rpm[_chassisParams.centerLeft]  = rpmLeft;
-      if(_chassisParams.rearLeft    >= 0)  _rpm[_chassisParams.rearLeft]    = rpmLeft;
-      if(_chassisParams.frontRight  >= 0)  _rpm[_chassisParams.frontRight]  = rpmRight;
-      if(_chassisParams.centerRight >= 0)  _rpm[_chassisParams.centerRight] = rpmRight;
-      if(_chassisParams.rearRight   >= 0)  _rpm[_chassisParams.rearRight]   = rpmRight;
+      float rpm[6] = {0.f};
+      int fl = _chassisParams.frontLeft.id*2   + _chassisParams.frontLeft.channel;
+      int fr = _chassisParams.frontRight.id*2  + _chassisParams.frontRight.channel;
+      int cl = _chassisParams.centerLeft.id*2  + _chassisParams.centerLeft.channel;
+      int cr = _chassisParams.centerRight.id*2 + _chassisParams.centerRight.channel;
+      int rl = _chassisParams.rearLeft.id*2    + _chassisParams.rearLeft.channel;
+      int rr = _chassisParams.rearRight.id*2   + _chassisParams.rearRight.channel;
 
-      //cout << _vl << " " << _vr << " " << _vMax << " " << rpmLeft << " " << rpmRight << endl;
-      _motor->setRPM(_rpm);
-      cout << _motor->getRPM(0) << " " << _motor->getRPM(1) << endl;*/
+      if(fl>=0 && fl<6) rpm[fl] = rpmLeft;
+      if(fr>=0 && fr<6) rpm[fr] = rpmRight;
+      if(cl>=0 && cl<6) rpm[cl] = rpmLeft;
+      if(cr>=0 && cr<6) rpm[cr] = rpmRight;
+      if(rl>=0 && rl<6) rpm[rl] = rpmLeft;
+      if(rr>=0 && rr<6) rpm[rr] = rpmRight;
+
+      for(int i=0; i<=2; i++)
+      {
+        if(!_mc[i]->setRPM(&(rpm[2*i])))
+        {
+          std::cout << "# Failed to set RPM values for CAN ID" << _mc[i]->getCanId() << std::endl;
+        }
+      }
     }
 
     run = ros::ok();// && !lag;
@@ -69,7 +78,9 @@ void SkidSteering::run()
     rate.sleep();
   }
 
-  _motor->stop();
+  _mc[0]->stop();
+  _mc[1]->stop();
+  _mc[2]->stop();
 }
 
 void SkidSteering::normalizeVelocity(float &vl, float &vr)

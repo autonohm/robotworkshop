@@ -45,13 +45,13 @@
 #define ERR_ENCA_NOSIGNAL   0xE0
 #define ERR_ENCB_NOSIGNAL   0xE1
 
-MotorControllerCAN::MotorControllerCAN(SocketCAN* can, MotorParams params)
+MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned int canID, MotorParams params)
 {
   _params    = params;
   _can       = can;
-  _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | _params.canID;
+  _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | canID;
 
-  canid_t canidOutput = GROUPID | SYSTEMID | COMPOUTPUT | _params.canID;
+  canid_t canidOutput = GROUPID | SYSTEMID | COMPOUTPUT | canID;
 
   setCANId(canidOutput);
   can->registerObserver(this);
@@ -65,68 +65,68 @@ MotorControllerCAN::MotorControllerCAN(SocketCAN* can, MotorParams params)
   bool retval = true;
   if(!setFrequencyScale(params.frequencyScale))
   {
-    std::cout << "# Setting frequency scaling parameter failed for device " << params.canID << std::endl;
+    std::cout << "# Setting frequency scaling parameter failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(1000);
   if(!enable())
   {
-    std::cout << "# Enabling motor controller failed for device " << params.canID << std::endl;
+    std::cout << "# Enabling motor controller failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(1000);
   if(!setMaxPulseWidth(params.maxPulseWidth))
   {
-    std::cout << "# Setting maximum pulse width failed for device " << params.canID << std::endl;
+    std::cout << "# Setting maximum pulse width failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(1000);
   if(!setGearRatio(params.gearRatio))
   {
-    std::cout << "# Setting gear ratio failed for device " << params.canID << std::endl;
+    std::cout << "# Setting gear ratio failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(1000);
   if(!setEncoderTicksPerRev(params.encoderRatio))
   {
-    std::cout << "# Setting encoder parameters failed for device " << params.canID << std::endl;
+    std::cout << "# Setting encoder parameters failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(1000);
   if(!setKp(params.kp))
   {
-    std::cout << "# Setting proportional factor of PID controller failed for device " << params.canID << std::endl;
+    std::cout << "# Setting proportional factor of PID controller failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(1000);
   if(!setKi(params.ki))
   {
-    std::cout << "# Setting integration factor of PID controller failed for device " << params.canID << std::endl;
+    std::cout << "# Setting integration factor of PID controller failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(1000);
   if(!setKd(params.kd))
   {
-    std::cout << "# Setting differential factor of PID controller failed for device " << params.canID << std::endl;
+    std::cout << "# Setting differential factor of PID controller failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(1000);
   if(!setInputWeight(params.inputWeight))
   {
-    std::cout << "# Setting differential factor of PID controller failed for device " << params.canID << std::endl;
+    std::cout << "# Setting differential factor of PID controller failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(1000);
   if(!configureResponse(params.responseMode))
   {
-    std::cout << "# Setting response mode failed for device " << params.canID << std::endl;
+    std::cout << "# Setting response mode failed for device " << canID << std::endl;
     retval = false;
   }
   usleep(25000);
 
   if(!retval)
   {
-    std::cout << "# ERROR initializing motor controller with ID " << params.canID << std::endl;
+    std::cout << "# ERROR initializing motor controller with ID " << canID << std::endl;
     std::cout << "-----------------------------------------------";
   }
 }
@@ -152,11 +152,12 @@ bool MotorControllerCAN::disable()
 
 bool MotorControllerCAN::broadcastExternalSync()
 {
+  canid_t idTmp = _cf.can_id;
   _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | 0x1F;
   _cf.can_dlc = 1;
   _cf.data[0] = CMD_EXT_SYN;
-  bool retval = _can->send(&_cf);;
-  _cf.can_id = GROUPID | SYSTEMID | COMPINPUT | _params.canID;
+  bool retval = _can->send(&_cf);
+  _cf.can_id = idTmp;
   return retval;
 }
 
@@ -172,7 +173,7 @@ bool MotorControllerCAN::configureResponse(enum CanResponse mode)
 
 unsigned short MotorControllerCAN::getCanId()
 {
-  return _params.canID;
+  return _cf.can_id & 0xF;
 }
 
 bool MotorControllerCAN::setTimeout(unsigned short timeoutInMillis)
@@ -284,7 +285,7 @@ bool MotorControllerCAN::setRPM(float rpm[2])
   return _can->send(&_cf);
 }
 
-void MotorControllerCAN::getMotionResponse(float response[2])
+void MotorControllerCAN::getWheelResponse(float response[2])
 {
   if(_params.responseMode == CAN_RESPONSE_RPM)
   {

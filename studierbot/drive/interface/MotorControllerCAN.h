@@ -12,7 +12,6 @@ enum CanResponse
 
 struct MotorParams
 {
-  unsigned int     canID;
   unsigned short   frequencyScale;
   float            inputWeight;
   unsigned char    maxPulseWidth;
@@ -31,7 +30,6 @@ struct MotorParams
    */
   MotorParams()
   {
-    canID          = 0;
     frequencyScale = 32;
     inputWeight    = 1.f;
     maxPulseWidth  = 63;
@@ -52,7 +50,6 @@ struct MotorParams
    */
   MotorParams(const MotorParams &p)
   {
-    canID          = p.canID;
     frequencyScale = p.frequencyScale;
     inputWeight    = p.inputWeight;
     maxPulseWidth  = p.maxPulseWidth;
@@ -82,7 +79,7 @@ public:
    * @param[in] can SocketCAN instance
    * @param[in] params motor parameters
    */
-  MotorControllerCAN(SocketCAN* can, MotorParams params);
+  MotorControllerCAN(SocketCAN* can, unsigned int canID, MotorParams params);
 
   /**
    * Destructor
@@ -210,7 +207,7 @@ public:
    * Get either motor revolutions per minute or motor position (encoder ticks). This depends on the configuration canResponseMode.
    * @param[out] response revolutions per minute for motor 1 and 2 / position of motor 1 and 2. This is a modulo 2^15 value.
    */
-  void getMotionResponse(float response[2]);
+  void getWheelResponse(float response[2]);
 
   /**
    * Set proportional factor of PID controller
