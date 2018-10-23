@@ -34,97 +34,37 @@ void setRPM(MotorControllerCAN* mc, float val)
   }
 }
 
+#define _INSTANCES 3
 int main(int argc, char* argv[])
 {
+  MotorParams motorParams;
+  motorParams.canID          = 0;
+  motorParams.frequencyScale = 32;    // PWM frequency: 1/frequencyScale x 500kHz
+  motorParams.inputWeight    = 0.8f;  // Smoothing parameter for input values: smoothVal = inputWeight x prevVal + (1.f-inputWeight) x newVal
+  motorParams.maxPulseWidth  = 127;   // Set maxPulse to 127 to apply full power
+  motorParams.timeout        = 300;
+  motorParams.gearRatio      = 99.f;
+  motorParams.encoderRatio   = 48.f;
+  motorParams.rpmMax         = 100;
+  motorParams.responseMode   = CAN_RESPONSE_POS;
+  motorParams.kp             = 2.f;
+  motorParams.ki             = 200.f;
+  motorParams.kd             = 0.f;
+  motorParams.antiWindup     = 1;
+
   SocketCAN can(std::string("slcan0"));
-  MotorControllerCAN mc0(&can, 0);
-  MotorControllerCAN mc1(&can, 1);
-  MotorControllerCAN mc2(&can, 2);
-  MotorControllerCAN mc3(&can, 3);
-  std::vector<MotorControllerCAN*> mc;
-  mc.push_back(&mc0);
-  mc.push_back(&mc1);
-  mc.push_back(&mc2);
-  //mc.push_back(&mc3);
-
-  float gearRatio[2]            = {131.f, 131.f};
-  float encoderTicksPerRev[2]   = {64.f,  64.f};
-  unsigned short frequencyScale = 32;   // PWM frequency: 1/frequencyScale x 500kHz
-  unsigned char maxPulse        = 127;   // Set maxPulse to 127 to apply full power
-  float inputWeight             = 0.8f; // Smoothing parameter for input values: smoothVal = inputWeight x prevVal + (1.f-inputWeight) x newVal
-  float kp                      = 2.f;
-  float ki                      = 200.f;
-  float kd                      = 0.f;
-  CanResponse responseMode      = CAN_RESPONSE_RPM;
-
   can.startListener();
 
+  std::vector<MotorControllerCAN*> mc;
   unsigned int dev = 0;
-  for(dev=0; dev<mc.size(); dev++)
+  for(dev=0; dev<_INSTANCES; dev++)
   {
-    if(!mc[dev]->setFrequencyScale(frequencyScale))
-    {
-      std::cout << "# Setting frequency scaling parameter failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(1000);
-    if(!mc[dev]->enable())
-    {
-      std::cout << "# Enabling motor controller failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(1000);
-    if(!mc[dev]->setMaxPulseWidth(maxPulse))
-    {
-      std::cout << "# Setting maximum pulse width failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(1000);
-    if(!mc[dev]->setGearRatio(gearRatio))
-    {
-      std::cout << "# Setting gear ratio failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(1000);
-    if(!mc[dev]->setEncoderTicksPerRev(encoderTicksPerRev))
-    {
-      std::cout << "# Setting encoder parameters failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(1000);
-    if(!mc[dev]->setKp(kp))
-    {
-      std::cout << "# Setting proportional factor of PID controller failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(1000);
-    if(!mc[dev]->setKi(ki))
-    {
-      std::cout << "# Setting integration factor of PID controller failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(1000);
-    if(!mc[dev]->setKd(kd))
-    {
-      std::cout << "# Setting differential factor of PID controller failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(1000);
-    if(!mc[dev]->setInputWeight(inputWeight))
-    {
-      std::cout << "# Setting differential factor of PID controller failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(1000);
-    if(!mc[dev]->configureResponse(responseMode))
-    {
-      std::cout << "# Setting response mode failed for device " << dev << std::endl;
-      return -1;
-    }
-    usleep(25000);
+    motorParams.canID = dev;
+    MotorControllerCAN* m = new MotorControllerCAN(&can, motorParams);
+    mc.push_back(m);
   }
 
-  for(int i=0; i<1000000; i++)
+  for(int i=0; i<500; i++)
   {
     if(i%50==0)
       mc[0]->broadcastExternalSync();
@@ -142,18 +82,9 @@ int main(int argc, char* argv[])
     {
       if(mc[dev]->waitForSync())
       {
-        if(responseMode==CAN_RESPONSE_RPM)
-        {
-          float rpm[2];
-          mc[dev]->getRPM(rpm);
-          std::cout << " " << rpm[0] << " " << rpm[1];
-        }
-        else
-        {
-          short pos[2];
-          mc[dev]->getPos(pos);
-          std::cout << " " << pos[0] << " " << pos[1];
-        }
+        float response[2];
+        mc[dev]->getMotionResponse(response);
+        std::cout << " " << response[0] << " " << response[1];
       }
       else
       {
@@ -162,5 +93,10 @@ int main(int argc, char* argv[])
     }
     std::cout << std::endl;
     usleep(10000);
+  }
+
+  for(dev=0; dev<mc.size(); dev++)
+  {
+    delete mc[dev];
   }
 }

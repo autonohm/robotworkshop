@@ -10,6 +10,64 @@ enum CanResponse
   CAN_RESPONSE_POS
 };
 
+struct MotorParams
+{
+  unsigned int     canID;
+  unsigned short   frequencyScale;
+  float            inputWeight;
+  unsigned char    maxPulseWidth;
+  unsigned short   timeout;
+  float            gearRatio;
+  float            encoderRatio;
+  float            rpmMax;
+  enum CanResponse responseMode;
+  float            kp;
+  float            ki;
+  float            kd;
+  int              antiWindup;
+
+  /**
+   * Standard constructor assigns default parameters
+   */
+  MotorParams()
+  {
+    canID          = 0;
+    frequencyScale = 32;
+    inputWeight    = 1.f;
+    maxPulseWidth  = 63;
+    timeout        = 100;
+    gearRatio      = 0.f;
+    encoderRatio   = 0.f;
+    rpmMax         = 0.f;
+    responseMode   = CAN_RESPONSE_RPM;
+    kp             = 1.f;
+    ki             = 0.f;
+    kd             = 0.f;
+    antiWindup     = 1;
+  }
+
+  /**
+   * Copy constructor
+   * @param[in] p parameter instance to be copied
+   */
+  MotorParams(const MotorParams &p)
+  {
+    canID          = p.canID;
+    frequencyScale = p.frequencyScale;
+    inputWeight    = p.inputWeight;
+    maxPulseWidth  = p.maxPulseWidth;
+    timeout        = p.timeout;
+    gearRatio      = p.gearRatio;
+    encoderRatio   = p.encoderRatio;
+    rpmMax         = p.rpmMax;
+    responseMode   = p.responseMode;
+    kp             = p.kp;
+    ki             = p.ki;
+    kd             = p.kd;
+    antiWindup     = p.antiWindup;
+  }
+};
+
 /**
  * @class MotorControllerCAN
  * @brief CAN interface for Evocortex Centipede motor controller.
@@ -22,9 +80,9 @@ public:
   /**
    * Constructor
    * @param[in] can SocketCAN instance
-   * @param[in] canID Identifier of CAN node, i.e. ID in range [0;15]
+   * @param[in] params motor parameters
    */
-  MotorControllerCAN(SocketCAN* can, unsigned short canID);
+  MotorControllerCAN(SocketCAN* can, MotorParams params);
 
   /**
    * Destructor
@@ -72,18 +130,36 @@ public:
   bool setTimeout(unsigned short timeoutInMillis);
 
   /**
+   * Accessor to timeout parameter. See commets of mutator for more information.
+   * @return timeout in milliseconds
+   */
+  unsigned short getTimeout();
+
+  /**
    * Set gear ratio (factor between motor and wheel revolutions)
    * @param[in] gearRatio (motor rev) / (wheel rev) for motor 1 and 2
    * @return true==successful CAN transmission
    */
-  bool setGearRatio(float gearRatio[2]);
+  bool setGearRatio(float gearRatio);
+
+  /**
+   * Accessor to gear ratio parameter
+   * @return gearRatio (motor rev) / (wheel rev) for motor 1 and 2
+   */
+  float getGearRatio();
 
   /**
    * Set number of encoder ticks per motor revolution
    * @param[in] encoderTicksPerRev encoder ticks per motor revolution for motor 1 and 2
    * @return true==successful CAN transmission
    */
-  bool setEncoderTicksPerRev(float encoderTicksPerRev[2]);
+  bool setEncoderTicksPerRev(float encoderTicksPerRev);
+
+  /**
+   * Accessor to parameter representing encoder ticks per motor revolution
+   * @return encoder ticks per motor revolution for motor 1 and 2
+   */
+  float getEncoderTicksPerRev();
 
   /**
    * Set scaling parameter for PWM frequency. The base frequency is 500kHz, of which one can apply a fractional amount, e.g.
@@ -96,12 +172,25 @@ public:
   bool setFrequencyScale(unsigned short scale);
 
   /**
+   * Accessor to frequency scaling parameter, see mutator for details.
+   * @return scale denominator d of term 1/d x 500kHz
+   */
+  unsigned short getFrequencyScale();
+
+  /**
    * The PWM signal can be adjusted in the range from [-127;127] which is equal to [-100%;100%].
    * To limit the possible output, one can set a different value between [0;127],
    * which is symmetrically applied to the positive and negative area, e.g. 32 => [-25%;25%]
    * The default value is: 63 => [-50%;50%]
+   * @param[in] pulse pulse width limit in range of [-127;127]
    */
   bool setMaxPulseWidth(unsigned char pulse);
+
+  /**
+   * Accessor to pulse width limit, see mutator for details.
+   * @return pulse width limit
+   */
+  unsigned char getMaxPulseWidth();
 
   /**
    * Set pulse width modulated signal
@@ -118,16 +207,10 @@ public:
   bool setRPM(float rpm[2]);
 
   /**
-   * Get motor revolutions per minute
-   * @param[out] rpm revolutions per minute for motor 1 and 2
+   * Get either motor revolutions per minute or motor position (encoder ticks). This depends on the configuration canResponseMode.
+   * @param[out] response revolutions per minute for motor 1 and 2 / position of motor 1 and 2. This is a modulo 2^15 value.
    */
-  void getRPM(float rpm[2]);
-
-  /**
-   * Get motor position (encoder ticks).
-   * @param[out] pos position of motor 1 and 2. This is a modulo 2^15 value.
-   */
-  void getPos(short pos[2]);
+  void getMotionResponse(float response[2]);
 
   /**
    * Set proportional factor of PID controller
@@ -137,11 +220,23 @@ public:
   bool setKp(float kp);
 
   /**
+   * Accessor to proportional factor of PID controller
+   * @return proportional factor
+   */
+  float getKp();
+
+  /**
    * Set integration factor of PID controller
    * @param[in] ki integration factor
    * @return success
    */
   bool setKi(float ki);
+
+  /**
+   * Accessor to integration factor of PID controller
+   * @return integration factor
+   */
+  float getKi();
 
   /**
    * Set differential factor of PID controller
@@ -151,10 +246,22 @@ public:
   bool setKd(float kd);
 
   /**
+   * Accessor to differential factor of PID controller
+   * @return differential factor
+   */
+  float getKd();
+
+  /**
    * Set weight of input filter. Input values f are filtered with f'=weight*f'+(1-weight)*f.
-   * @weight filtering weight. A value of 0 disables the filter. The value must be in the range of [0;1[
+   * @param[in] filtering weight. A value of 0 disables the filter. The value must be in the range of [0;1[
    */
   bool setInputWeight(float weight);
+
+  /**
+   * Accessor to weight of input filter. See comments of mutator for more information.
+   * @return weight of input filter
+   */
+  float getInputWeight();
 
   /**
    * Wait for synchronization after a new PWM or RPM value is set.
@@ -181,19 +288,21 @@ private:
    */
   void notify(struct can_frame* frame);
 
-  SocketCAN* _can;
+  SocketCAN*       _can;
 
-  can_frame _cf;
+  can_frame        _cf;
 
-  float _rpm[2];
+  unsigned long    _idSyncSend;
 
-  short _pos[2];
+  unsigned long    _idSyncReceive;
 
-  unsigned long _idSyncSend;
+  MotorParams      _params;
 
-  unsigned long _idSyncReceive;
+  enum CanResponse _responseMode;
 
-  unsigned short _canID;
+  float            _rpm[2];
+
+  short            _pos[2];
 };
 
 #endif /* _MOTORCONTROLLERCAN_H_ */

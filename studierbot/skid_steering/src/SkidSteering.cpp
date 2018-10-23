@@ -4,17 +4,20 @@
 
 using namespace std;
 
-SkidSteering::SkidSteering(ChassisParams &chParams, MotorParams &params)
+SkidSteering::SkidSteering(ChassisParams &chassisParams, MotorParams &motorParams, SocketCAN &can)
 {
 
-  _motor = new MotorControllerSerial(params);
-  _chParams = chParams;
-  _track                = _chParams.track;
-  _pinionCircumference  = _chParams.wheelDiameter * M_PI;
-  _vMax                 = _motor->getRPMMax() * _pinionCircumference / 60.f;
+  _motor = new MotorControllerCAN(&can, motorParams);
+  _chassisParams = chassisParams;
+  _track                = _chassisParams.track;
+  _pinionCircumference  = _chassisParams.wheelDiameter * M_PI;
+  _vMax                 = motorParams.rpmMax * _pinionCircumference / 60.f;
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &SkidSteering::joyCallback,      this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &SkidSteering::velocityCallback, this);
+
+  _vl     = 0.0;
+  _vr     = 0.0;
 
   _rpm[0] = 0.0;
   _rpm[1] = 0.0;
@@ -49,16 +52,16 @@ void SkidSteering::run()
     {
       float rpmLeft  = trackspeedToRPM(_vl);
       float rpmRight = trackspeedToRPM(_vr);
-      if(_chParams.frontLeft   >= 0)  _rpm[_chParams.frontLeft]   = rpmLeft;
-      if(_chParams.centerLeft  >= 0)  _rpm[_chParams.centerLeft]  = rpmLeft;
-      if(_chParams.rearLeft    >= 0)  _rpm[_chParams.rearLeft]    = rpmLeft;
-      if(_chParams.frontRight  >= 0)  _rpm[_chParams.frontRight]  = rpmRight;
-      if(_chParams.centerRight >= 0)  _rpm[_chParams.centerRight] = rpmRight;
-      if(_chParams.rearRight   >= 0)  _rpm[_chParams.rearRight]   = rpmRight;
+      /*if(_chassisParams.frontLeft   >= 0)  _rpm[_chassisParams.frontLeft]   = rpmLeft;
+      if(_chassisParams.centerLeft  >= 0)  _rpm[_chassisParams.centerLeft]  = rpmLeft;
+      if(_chassisParams.rearLeft    >= 0)  _rpm[_chassisParams.rearLeft]    = rpmLeft;
+      if(_chassisParams.frontRight  >= 0)  _rpm[_chassisParams.frontRight]  = rpmRight;
+      if(_chassisParams.centerRight >= 0)  _rpm[_chassisParams.centerRight] = rpmRight;
+      if(_chassisParams.rearRight   >= 0)  _rpm[_chassisParams.rearRight]   = rpmRight;
 
       //cout << _vl << " " << _vr << " " << _vMax << " " << rpmLeft << " " << rpmRight << endl;
       _motor->setRPM(_rpm);
-      cout << _motor->getRPM(0) << " " << _motor->getRPM(1) << endl;
+      cout << _motor->getRPM(0) << " " << _motor->getRPM(1) << endl;*/
     }
 
     run = ros::ok();// && !lag;
@@ -108,7 +111,7 @@ void SkidSteering::velocityCallback(const geometry_msgs::Twist::ConstPtr& cmd)
 void SkidSteering::twistToTrackspeed(float *vl, float *vr, float v, float omega) const
 {
   *vr = -1.f * (v + omega * _track);
-  *vl =       v - omega * _track;  
+  *vl =         v - omega * _track;
 }
 
 void SkidSteering::trackspeedToTwist(float vl, float vr, float *v, float *omega) const
