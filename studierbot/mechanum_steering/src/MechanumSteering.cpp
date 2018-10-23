@@ -4,41 +4,41 @@
 
 using namespace std;
 
-MechanumSteering::MechanumSteering(ChassisParams &chParams, MotorParams &mParams)
+MechanumSteering::MechanumSteering(ChassisParams &chassisParams, MotorParams &motorParams, SocketCAN &can)
 {
-  _mParams  = new MotorParams(mParams);
-  _chParams = chParams;
+  _mc[0]    = new MotorControllerCAN(&can, 0, motorParams);
+  _mc[1]    = new MotorControllerCAN(&can, 1, motorParams);
+
+  _motorParams  = new MotorParams(motorParams);
+  _chassisParams = chassisParams;
   // ensure that the direction parameter is set properly (either 1 or -1)
-  if(_chParams.direction>0) _chParams.direction = 1;
-  else _chParams.direction = -1;
+  if(_chassisParams.direction>0) _chassisParams.direction = 1;
+  else _chassisParams.direction = -1;
 
-  //_motor  = new MotorControllerSerial(*_mParams);
-  _motor  = new MotorControllerCAN(*_mParams);
+  //_motor  = new MotorControllerCAN(*_mParams);
 
-  _rad2rpm          = (chParams.wheelBase+chParams.track)/chParams.wheelDiameter; // (lx+ly)/2 * 1/r
+  _rad2rpm          = (chassisParams.wheelBase+chassisParams.track)/chassisParams.wheelDiameter; // (lx+ly)/2 * 1/r
   _rpm2rad          = 1.0 / _rad2rpm;
-  _ms2rpm           = 60.0/(chParams.wheelDiameter*M_PI);
+  _ms2rpm           = 60.0/(chassisParams.wheelDiameter*M_PI);
   _rpm2ms           = 1.0 / _ms2rpm;
-  _vMax             = _motor->getRPMMax() * _rpm2ms;
-  _omegaMax         = _motor->getRPMMax() * _rpm2rad;
+  _vMax             = motorParams.rpmMax * _rpm2ms;
+  _omegaMax         = motorParams.rpmMax * _rpm2rad;
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &MechanumSteering::joyCallback, this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &MechanumSteering::velocityCallback, this);
-
   _rpm[0] = 0.0;
   _rpm[1] = 0.0;
   _rpm[2] = 0.0;
   _rpm[3] = 0.0;
-  _rpm[4] = 0.0;
-  _rpm[5] = 0.0;
 
   cout << "Initialized mechanum steering with vMax: " << _vMax << " m/s" << endl;
 }
 
 MechanumSteering::~MechanumSteering()
 {
-  delete _motor;
-  delete _mParams;
+  delete _mc[0];
+  delete _mc[1];
+  delete _motorParams;
 }
 
 void MechanumSteering::run()
@@ -56,11 +56,30 @@ void MechanumSteering::run()
     if(lag)
     {
       ROS_WARN_STREAM("Lag detected ... deactivate motor control");
-      _motor->stop();
+      _mc[0]->stop();
+      _mc[1]->stop();
     }
     else
     {
-      _motor->setRPM(_rpm);
+
+      /*float rpm[4] = {0.f};
+      int fl = _chassisParams.frontLeft.id*2   + _chassisParams.frontLeft.channel;
+      int fr = _chassisParams.frontRight.id*2  + _chassisParams.frontRight.channel;
+      int rl = _chassisParams.rearLeft.id*2    + _chassisParams.rearLeft.channel;
+      int rr = _chassisParams.rearRight.id*2   + _chassisParams.rearRight.channel;
+
+      if(fl>=0 && fl<4) rpm[fl] = fl;
+      if(fr>=0 && fr<4) rpm[fr] = fr;
+      if(rl>=0 && rl<4) rpm[rl] = rl;
+      if(rr>=0 && rr<4) rpm[rr] = rr;*/
+
+      for(int i=0; i<=1; i++)
+      {
+        if(!_mc[i]->setRPM(&(_rpm[2*i])))
+        {
+          std::cout << "# Failed to set RPM values for CAN ID" << _mc[i]->getCanId() << std::endl;
+        }
+      }
     }
 
     run = ros::ok();
@@ -68,7 +87,8 @@ void MechanumSteering::run()
     rate.sleep();
   }
 
-  _motor->stop();
+  _mc[0]->stop();
+  _mc[1]->stop();
 }
 
 void MechanumSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
@@ -101,27 +121,27 @@ void MechanumSteering::normalizeAndMap(float vFwd, float vLeft, float omega)
   //cout << "rpmFwd: " << rpmFwd << ", rpmLeft: " << rpmLeft << ", rpmOmega: " << rpmOmega << endl;
 
   // leading signs -> see derivation: Stefan May, Skriptum Mobile Robotik
-  _rpm[_chParams.frontLeft]  = -rpmFwd + rpmLeft - rpmOmega;
-  _rpm[_chParams.frontRight] =  rpmFwd + rpmLeft - rpmOmega;
-  _rpm[_chParams.rearLeft]   = -rpmFwd - rpmLeft - rpmOmega;
-  _rpm[_chParams.rearRight]  =  rpmFwd - rpmLeft - rpmOmega;
+  _rpm[_chassisParams.frontLeft.id  * 2 + _chassisParams.frontLeft.channel]  = -rpmFwd + rpmLeft - rpmOmega;
+  _rpm[_chassisParams.frontRight.id * 2 + _chassisParams.frontRight.channel] =  rpmFwd + rpmLeft - rpmOmega;
+  _rpm[_chassisParams.rearLeft.id   * 2 + _chassisParams.rearLeft.channel]   = -rpmFwd - rpmLeft - rpmOmega;
+  _rpm[_chassisParams.rearRight.id  * 2 + _chassisParams.rearRight.channel]  =  rpmFwd - rpmLeft - rpmOmega;
 
   // possibility to flip directions
-  _rpm[0] *= _chParams.direction;
-  _rpm[1] *= _chParams.direction;
-  _rpm[2] *= _chParams.direction;
-  _rpm[3] *= _chParams.direction;
+  _rpm[0] *= _chassisParams.direction;
+  _rpm[1] *= _chassisParams.direction;
+  _rpm[2] *= _chassisParams.direction;
+  _rpm[3] *= _chassisParams.direction;
 
   // Normalize values, if any value exceeds the maximum
   float rpmMax = std::abs(_rpm[0]);
   for(int i=1; i<4; i++)
   {
-    if(std::abs(_rpm[i]) > _mParams->rpmMax)
+    if(std::abs(_rpm[i]) > _motorParams->rpmMax)
       rpmMax = std::abs(_rpm[i]);
   }
-  if(rpmMax > _mParams->rpmMax)
+  if(rpmMax > _motorParams->rpmMax)
   {
-    float factor = _mParams->rpmMax / rpmMax;
+    float factor = _motorParams->rpmMax / rpmMax;
     for(int i=0; i<4; i++)
       _rpm[i] *= factor;
   }

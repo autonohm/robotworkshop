@@ -40,8 +40,8 @@ int main(int argc, char** argv)
   nh.param("antiWindup",    motorParams.antiWindup,            1);
 
   SocketCAN can(canInterface);
-
   cout << "CAN Interface: " << canInterface << endl;
+
   SkidSteering robot(chassisParams, motorParams, can);
   robot.run();
 }

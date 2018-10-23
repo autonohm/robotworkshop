@@ -6,10 +6,45 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../drive/interface/MotorControllerSerial.h"
 #include "../../drive/interface/MotorControllerCAN.h"
 
 using namespace std;
+
+struct WheelParams
+{
+  int id;      // ID of motor controller board, i.e., CAN ID
+  int channel; // Channel of motor controller board, i.e., either 0 or 1
+};
+
+struct ChassisParams
+{
+  float track;
+  float wheelBase;
+  float wheelDiameter;
+  struct WheelParams frontLeft;
+  struct WheelParams frontRight;
+  struct WheelParams centerLeft;
+  struct WheelParams centerRight;
+  struct WheelParams rearLeft;
+  struct WheelParams rearRight;
+  int   direction;
+
+  ChassisParams()
+  {
+    track               = 0.f;
+    wheelBase           = 0.f;
+    wheelDiameter       = 0.f;
+    frontLeft.id        = 0;
+    frontLeft.channel   = 0;
+    frontRight.id       = 0;
+    frontRight.channel  = 0;
+    rearLeft.id         = 0;
+    rearLeft.channel    = 0;
+    rearRight.id        = 0;
+    rearRight.channel   = 0;
+    direction           = 0;
+  }
+};
 
 /**
  * @class Main class for robot drives based on mechanum steering
@@ -22,10 +57,11 @@ public:
 
   /**
    * Standard Constructor
-   * @params[in] chParams chassis parameters, including the map for assigning channels to position of wheels
-   * @params[in] mParams motor parameters
+   * @params[in] chassisParams chassis parameters, including the map for assigning channels to position of wheels
+   * @params[in] motorParams motor parameters
+   * @params[in] can socket can interface
    */
-  MechanumSteering(ChassisParams &chParams, MotorParams &mParams);
+  MechanumSteering(ChassisParams &chassisParams, MotorParams &motorParams, SocketCAN &can);
 
   /**
    * Destructor
@@ -63,12 +99,12 @@ private:
   ros::Subscriber        _joySub;
   ros::Subscriber        _velSub;
 
-  ChassisParams          _chParams;
-  MotorParams*           _mParams;
-  MotorController*       _motor;
+  ChassisParams          _chassisParams;
+  MotorParams*           _motorParams;
+  MotorControllerCAN*    _mc[2];
 
-  // revolutions per minute for each channel (only 4 of 6 channels are used)
-  float                  _rpm[6];
+  // revolutions per minute for each channel
+  float                  _rpm[4];
 
   // maximum velocity [m/s]
   float                  _vMax;

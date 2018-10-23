@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(mechanum_steering)
 
+add_compile_options(-std=c++11)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -106,11 +108,10 @@ include_directories(
 add_executable(mechanum_steering_node
  src/mechanum_steering_node.cpp
  src/MechanumSteering.cpp
-  ../drive/interface/MotorController.cpp
-  ../drive/interface/MotorControllerCAN.cpp
-  ../drive/interface/MotorControllerSerial.cpp 
-   ../drive/interface/control.cpp
-   ../drive/interface/SerialPort.cpp
+ ../drive/interface/SocketCAN.cpp
+ ../drive/interface/SocketCANObserver.cpp
+ ../drive/interface/MotorControllerCAN.cpp
+ ../drive/interface/control.cpp
 )
 
 ## Add cmake target dependencies of the executable/library

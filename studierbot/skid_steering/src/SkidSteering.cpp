@@ -6,7 +6,6 @@ using namespace std;
 
 SkidSteering::SkidSteering(ChassisParams &chassisParams, MotorParams &motorParams, SocketCAN &can)
 {
-
   _mc[0]                = new MotorControllerCAN(&can, 0, motorParams);
   _mc[1]                = new MotorControllerCAN(&can, 1, motorParams);
   _mc[2]                = new MotorControllerCAN(&can, 2, motorParams);
@@ -49,6 +48,7 @@ void SkidSteering::run()
     {
       float rpmLeft  = trackspeedToRPM(_vl);
       float rpmRight = trackspeedToRPM(_vr);
+
       float rpm[6] = {0.f};
       int fl = _chassisParams.frontLeft.id*2   + _chassisParams.frontLeft.channel;
       int fr = _chassisParams.frontRight.id*2  + _chassisParams.frontRight.channel;
