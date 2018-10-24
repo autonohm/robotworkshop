@@ -32,7 +32,7 @@ void SkidSteering::run()
 {
   ros::Rate rate(25);
   _lastCmd = ros::Time::now();
-
+  unsigned int cnt = 0;
   bool run = true;
   while(run)
   {
@@ -63,6 +63,12 @@ void SkidSteering::run()
       if(cr>=0 && cr<6) rpm[cr] = rpmRight;
       if(rl>=0 && rl<6) rpm[rl] = rpmLeft;
       if(rr>=0 && rr<6) rpm[rr] = rpmRight;
+
+      if(cnt++>=25)
+      {
+        _mc[0]->broadcastExternalSync();
+        cnt=0;
+      }
 
       for(int i=0; i<=2; i++)
       {

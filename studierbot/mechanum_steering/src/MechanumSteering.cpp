@@ -15,8 +15,6 @@ MechanumSteering::MechanumSteering(ChassisParams &chassisParams, MotorParams &mo
   if(_chassisParams.direction>0) _chassisParams.direction = 1;
   else _chassisParams.direction = -1;
 
-  //_motor  = new MotorControllerCAN(*_mParams);
-
   _rad2rpm          = (chassisParams.wheelBase+chassisParams.track)/chassisParams.wheelDiameter; // (lx+ly)/2 * 1/r
   _rpm2rad          = 1.0 / _rad2rpm;
   _ms2rpm           = 60.0/(chassisParams.wheelDiameter*M_PI);
@@ -45,6 +43,7 @@ void MechanumSteering::run()
 {
   ros::Rate rate(25);
   _lastCmd = ros::Time::now();
+  unsigned int cnt;
 
   bool run = true;
   while(run)
@@ -61,17 +60,11 @@ void MechanumSteering::run()
     }
     else
     {
-
-      /*float rpm[4] = {0.f};
-      int fl = _chassisParams.frontLeft.id*2   + _chassisParams.frontLeft.channel;
-      int fr = _chassisParams.frontRight.id*2  + _chassisParams.frontRight.channel;
-      int rl = _chassisParams.rearLeft.id*2    + _chassisParams.rearLeft.channel;
-      int rr = _chassisParams.rearRight.id*2   + _chassisParams.rearRight.channel;
-
-      if(fl>=0 && fl<4) rpm[fl] = fl;
-      if(fr>=0 && fr<4) rpm[fr] = fr;
-      if(rl>=0 && rl<4) rpm[rl] = rl;
-      if(rr>=0 && rr<4) rpm[rr] = rr;*/
+      if(cnt++>=25)
+      {
+        _mc[0]->broadcastExternalSync();
+        cnt=0;
+      }
 
       for(int i=0; i<=1; i++)
       {
