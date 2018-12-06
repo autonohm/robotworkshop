@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include "../../drive/interface/MotorControllerCAN.h"
+#include "../../drive/interface/AddonShieldCAN.h"
 
 using namespace std;
 
@@ -117,8 +118,11 @@ private:
 
   ChassisParams          _chassisParams;
   MotorControllerCAN*    _mc[3];
+  AddonShieldCAN*        _addon;
 
   float                  _vl, _vr;
+  unsigned int           _fireButton;
+  float                  _cooliehatLR;
 
   // maximum velocity [m/s]
   float                  _vMax;
