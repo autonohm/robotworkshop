@@ -7,7 +7,7 @@ using namespace std;
 SkidSteering::SkidSteering(ChassisParams &chassisParams, MotorParams &motorParams, SocketCAN &can)
 {
   _mc[0]                = new MotorControllerCAN(&can, 0, motorParams, true);
-  _mc[1]                = new MotorControllerCAN(&can, 1, motorParams);
+  _mc[1]                = new MotorControllerCAN(&can, 1, motorParams, true);
   _mc[2]                = new MotorControllerCAN(&can, 2, motorParams, true);
   _chassisParams        = chassisParams;
   _track                = _chassisParams.track;

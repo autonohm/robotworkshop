@@ -52,6 +52,7 @@ int main(int argc, char** argv)
   motorParams.frequencyScale = (unsigned short)frequencyScale;
 
   SocketCAN can(canInterface);
+  can.startListener();
   cout << "CAN Interface: " << canInterface << endl;
 
   SkidSteering robot(chassisParams, motorParams, can);
