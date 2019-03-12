@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
   float servoFrequency = 330.f;
   float uLower = 500.f;
   float uUpper = 2500.f;
-  shield.setPWMFrequency((int)servoFrequency);
+  shield.setPWMFrequency(2, (int)servoFrequency);
   shield.enable(2);
   shield.enable(3);
   shield.enable(4);
@@ -28,16 +28,18 @@ int main(int argc, char* argv[])
   // Voltage threshold (automatic switch-off)
   shield.setThreshold(2, 8.f);
   shield.setThreshold(3, 13.f);
-  shield.setThreshold(4, 6.f);
+  shield.setThreshold(4, 0.f);
 
   int lowerPoint = (int)(uLower / ((1.f / servoFrequency) * 1000000.f) * 100.f - 0.5f);
   int upperPoint = (int)(uUpper / ((1.f / servoFrequency) * 1000000.f) * 100.f + 0.5f);
+
   shield.setPulseWidth(2, lowerPoint);
   usleep(2000000);
 
   for(int i=lowerPoint; i<upperPoint;)
   {
     shield.setPulseWidth(2, i);
+
     if(shield.waitForSync(100))
     {
       i++;
@@ -46,6 +48,8 @@ int main(int argc, char* argv[])
     }
   }
 
+  shield.disable(2);
+  shield.disable(3);
   can.stopListener();
 
 }

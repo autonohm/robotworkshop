@@ -109,6 +109,7 @@ add_executable(skid_steering_node
  src/skid_steering_node.cpp
  src/SkidSteering.cpp
   ../drive/interface/MotorControllerCAN.cpp
+  ../drive/interface/AddonShieldCAN.cpp
   ../drive/interface/control.cpp
   ../drive/interface/SocketCAN.cpp
   ../drive/interface/SocketCANObserver.cpp

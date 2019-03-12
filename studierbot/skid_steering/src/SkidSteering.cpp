@@ -7,7 +7,7 @@ using namespace std;
 SkidSteering::SkidSteering(ChassisParams &chassisParams, MotorParams &motorParams, SocketCAN &can)
 {
   _mc[0]                = new MotorControllerCAN(&can, 0, motorParams, true);
-  _mc[1]                = new MotorControllerCAN(&can, 1, motorParams);
+  _mc[1]                = new MotorControllerCAN(&can, 1, motorParams, true);
   _mc[2]                = new MotorControllerCAN(&can, 2, motorParams, true);
   _chassisParams        = chassisParams;
   _track                = _chassisParams.track;
@@ -17,8 +17,21 @@ SkidSteering::SkidSteering(ChassisParams &chassisParams, MotorParams &motorParam
   _joySub = _nh.subscribe<sensor_msgs::Joy>(    "joy",        10, &SkidSteering::joyCallback,      this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &SkidSteering::velocityCallback, this);
 
-  _vl     = 0.0;
-  _vr     = 0.0;
+  _vl          = 0.f;
+  _vr          = 0.f;
+  _fireButton  = 0;
+  _cooliehatLR = 0.f;
+
+  _addon = new AddonShieldCAN(&can);
+  float servoFrequency = 330.f;
+  _addon->setPWMFrequency((int)servoFrequency);
+  float uCenter = 1500.f;
+  int centerPoint = (int)(uCenter / ((1.f / servoFrequency) * 1000000.f) * 100.f);
+  cout << "centerPoint: " << centerPoint << endl;
+  _addon->enable(2);
+  _addon->enable(3);
+  _addon->setPulseWidth(2, centerPoint);
+  _addon->setPulseWidth(3, 30);
 }
 
 SkidSteering::~SkidSteering()
@@ -26,6 +39,10 @@ SkidSteering::~SkidSteering()
   delete _mc[0];
   delete _mc[1];
   delete _mc[2];
+
+  _addon->disable(2);
+  _addon->disable(3);
+  delete _addon;
 }
 
 void SkidSteering::run()
@@ -34,6 +51,8 @@ void SkidSteering::run()
   _lastCmd = ros::Time::now();
   unsigned int cnt = 0;
   bool run = true;
+
+  float uSetpointLowPass = 1500.f;
   while(run)
   {
     ros::spinOnce();
@@ -77,6 +96,17 @@ void SkidSteering::run()
           std::cout << "# Failed to set RPM values for CAN ID" << _mc[i]->getCanId() << std::endl;
         }
       }
+
+      if(_fireButton)
+        _addon->setPulseWidth(3, 100);
+      else
+        _addon->setPulseWidth(3, 30);
+
+      float servoFrequency = 330.f;
+      float uSetpoint = 1500.f + (_cooliehatLR) * 500.f;
+      uSetpointLowPass = 0.9f * uSetpointLowPass + 0.1f * uSetpoint;
+      int pulseWidth = (int)(uSetpointLowPass / ((1.f / servoFrequency) * 1000000.f) * 100.f);
+      _addon->setPulseWidth(2, pulseWidth);
     }
 
     run = ros::ok();// && !lag;
@@ -112,6 +142,8 @@ void SkidSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   _vr = _vMax * speed * (linear+angular);
 
   normalizeVelocity(_vl, _vr);
+  _fireButton  = joy->buttons[0];
+  _cooliehatLR = (float)joy->axes[4];
 
   _lastCmd = ros::Time::now();
 }
