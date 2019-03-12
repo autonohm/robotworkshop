@@ -16,6 +16,10 @@
 #define CMD_SET_FREQUENCY   0x03
 #define CMD_SET_PULSEWIDTH  0x04
 #define CMD_SET_THRESHOLD   0x05
+#define CMD_CH3_SET_12V     0x06
+#define CMD_CH3_SET_5V      0x07
+#define CMD_CH4_SET_19V     0x08
+#define CMD_CH4_SET_5V      0x09
 
 // Standard responses
 #define RESPONSE_VOLTAGE    0xA0
@@ -36,7 +40,7 @@ AddonShieldCAN::AddonShieldCAN(SocketCAN* can, bool verbosity)
   _voltage       = 0.f;
 
   bool retval = true;
-  if(!setPWMFrequency(100))
+  if(!setPWMFrequency(2, 100))
   {
     std::cout << "# Setting frequency scaling parameter failed for addon shield" << std::endl;
     retval = false;
@@ -109,12 +113,13 @@ bool AddonShieldCAN::setThreshold(unsigned char channel, float threshold)
   return _can->send(&_cf);
 }
 
-bool AddonShieldCAN::setPWMFrequency(unsigned short frequency)
+bool AddonShieldCAN::setPWMFrequency(unsigned char channel, unsigned short frequency)
 {
-  _cf.can_dlc = 3;
+  _cf.can_dlc = 4;
   _cf.data[0] = CMD_SET_FREQUENCY;
-  _cf.data[1] = (frequency >> 8) & 0xFF;
-  _cf.data[2] = frequency & 0xFF;
+  _cf.data[1] = channel;
+  _cf.data[2] = (frequency >> 8) & 0xFF;
+  _cf.data[3] = frequency & 0xFF;
   _idSyncSend++;
   return _can->send(&_cf);
 }
@@ -129,6 +134,37 @@ bool AddonShieldCAN::setPulseWidth(unsigned char channel, unsigned char pwm)
   return _can->send(&_cf);
 }
 
+bool AddonShieldCAN::enable12V()
+{
+  _cf.can_dlc = 1;
+  _cf.data[0] = CMD_CH3_SET_12V;
+  _idSyncSend++;
+  return _can->send(&_cf);
+}
+
+bool AddonShieldCAN::disable12V()
+{
+  _cf.can_dlc = 1;
+  _cf.data[0] = CMD_CH3_SET_5V;
+  _idSyncSend++;
+  return _can->send(&_cf);
+}
+
+bool AddonShieldCAN::enable19V()
+{
+  _cf.can_dlc = 1;
+  _cf.data[0] = CMD_CH4_SET_19V;
+  _idSyncSend++;
+  return _can->send(&_cf);
+}
+
+bool AddonShieldCAN::disable19V()
+{
+  _cf.can_dlc = 1;
+  _cf.data[0] = CMD_CH4_SET_5V;
+  _idSyncSend++;
+  return _can->send(&_cf);
+}
 void AddonShieldCAN::notify(struct can_frame* frame)
 {
   if(frame->can_dlc==5)

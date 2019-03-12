@@ -54,9 +54,11 @@ public:
 
   /**
    * Set PWM frequency
+   * @param[in] channel channel
+   * @param[in] frequency frequency
    * @return successful transmission of command
    */
-  bool setPWMFrequency(unsigned short frequency);
+  bool setPWMFrequency(unsigned char channel, unsigned short frequency);
 
   /**
    * Set pulse-width
@@ -65,6 +67,30 @@ public:
    * @return successful transmission of command
    */
   bool setPulseWidth(unsigned char channel, unsigned char pwm);
+
+  /**
+   * Set channel 3 to 12V
+   * @return successful transmission of command
+   */
+  bool enable12V();
+
+  /**
+   * Set channel 3 to 5V
+   * @return successful transmission of command
+   */
+  bool disable12V();
+
+  /**
+   * Set channel 4 to 19V
+   * @return successful transmission of command
+   */
+  bool enable19V();
+
+  /**
+   * Set channel 4 to 5V
+   * @return successful transmission of command
+   */
+  bool disable19V();
 
   /**
    * Wait for synchronization after a new PWM or RPM value is set.

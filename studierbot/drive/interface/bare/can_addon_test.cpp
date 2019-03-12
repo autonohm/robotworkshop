@@ -32,12 +32,12 @@ int main(int argc, char* argv[])
 
   int lowerPoint = (int)(uLower / ((1.f / servoFrequency) * 1000000.f) * 100.f - 0.5f);
   int upperPoint = (int)(uUpper / ((1.f / servoFrequency) * 1000000.f) * 100.f + 0.5f);
-  shield.setPulseWidth(4, lowerPoint);
+  shield.setPulseWidth(2, lowerPoint);
   usleep(2000000);
 
   for(int i=lowerPoint; i<upperPoint;)
   {
-    shield.setPulseWidth(4, i);
+    shield.setPulseWidth(2, i);
     if(shield.waitForSync(100))
     {
       i++;
