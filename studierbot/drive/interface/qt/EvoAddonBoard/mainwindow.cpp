@@ -44,6 +44,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    _shield->disable12V();
+    _shield->disable19V();
+    _shield->disable(2);
+    _shield->disable(3);
+    _shield->disable(4);
+
     delete _timer;
     delete _shield;
     _can->stopListener();
