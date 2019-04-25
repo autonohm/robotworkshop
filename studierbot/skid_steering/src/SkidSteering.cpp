@@ -24,7 +24,7 @@ SkidSteering::SkidSteering(ChassisParams &chassisParams, MotorParams &motorParam
 
   _addon = new AddonShieldCAN(&can);
   float servoFrequency = 330.f;
-  _addon->setPWMFrequency((int)servoFrequency);
+  _addon->setPWMFrequency(2, (int)servoFrequency);
   float uCenter = 1500.f;
   int centerPoint = (int)(uCenter / ((1.f / servoFrequency) * 1000000.f) * 100.f);
   cout << "centerPoint: " << centerPoint << endl;
