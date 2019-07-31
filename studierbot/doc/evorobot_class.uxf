@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?><diagram program="umlet" version="13.3">
+  <zoom_level>6</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>678</x>
+      <y>288</y>
+      <w>174</w>
+      <h>84</h>
+    </coordinates>
+    <panel_attributes>/SocketCANObserver/
+--
+-canid_t _canid
+--
++SocketCANObserver()
++~SocketCANObserver()
++void setCANId(id: canid_t)
++canid_t getCANId()
+/+void notify(struct can_frame* frame) /</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>624</x>
+      <y>864</y>
+      <w>252</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>SocketCAN
+--
+- std::thread* _thread
+- std::vector&lt;SocketCANObserver*&gt; _observers
+--
++SocketCAN(std::string devFile)
++~SocketCAN()
++bool registerObserver(SocketCANObserver* observer)
++bool openPort(const char* port)
++bool send(struct can_frame* frame)
++bool startListener()
++bool stopListener()
++bool closePort()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>732</x>
+      <y>786</y>
+      <w>18</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>336</x>
+      <y>480</y>
+      <w>438</w>
+      <h>312</h>
+    </coordinates>
+    <panel_attributes>MotorcontrollerCAN
+--
+--
++MotorControllerCAN(SocketCAN* can, unsigned int canID, MotorParams params, bool verbosity=0)
++~MotorControllerCAN()
++bool enable()
++bool disable()
++bool broadcastExternalSync()
++bool configureResponse(enum CanResponse mode)
++unsigned short getCanId()
++bool setTimeout(unsigned short timeoutInMillis)
++unsigned short getTimeout()
++float getGearRatio()
++bool setEncoderTicksPerRev(float encoderTicksPerRev)
++float getEncoderTicksPerRev()
++bool setFrequencyScale(unsigned short scale)
++unsigned short getFrequencyScale()
++bool setMaxPulseWidth(unsigned char pulse)
++unsigned char getMaxPulseWidth()
++bool setPWM(int pwm[2])
++bool setRPM(float rpm[2])
++void getWheelResponse(float response[2])
++bool setKp(float kp)
++float getKp()
++bool setKi(float ki)
++float getKi()
++bool setKd(float kd)
++float getKd()
++bool setInputWeight(float weight)
++float getInputWeight()
++bool waitForSync(unsigned int timeoutInMillis=100)
++void stop()
+-void notify(struct can_frame* frame)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>750</x>
+      <y>366</y>
+      <w>18</w>
+      <h>126</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>792</x>
+      <y>366</y>
+      <w>30</w>
+      <h>510</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+m1=0..*
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;830.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>822</x>
+      <y>480</y>
+      <w>336</w>
+      <h>162</h>
+    </coordinates>
+    <panel_attributes>AddonShieldCAN
+--
+--
++AddonShieldCAN(SocketCAN* can, bool verbosity=0)
++~AddonShieldCAN()
++bool enable(unsigned char channel)
++bool disable(unsigned char channel)
++float getVoltage()
++bool setThreshold(unsigned char channel, float threshold)
++bool setPWMFrequency(unsigned char channel, unsigned short frequency)
++bool setPulseWidth(unsigned char channel, unsigned char pwm)
++bool enable12V()
++bool disable12V()
++bool enable19V()
++bool disable19V()
++bool waitForSync(unsigned int timeoutInMillis=100)
+-void notify(struct can_frame* frame)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>834</x>
+      <y>366</y>
+      <w>18</w>
+      <h>126</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>870</x>
+      <y>636</y>
+      <w>54</w>
+      <h>294</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>70.0;10.0;70.0;460.0;10.0;460.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>162</x>
+      <y>174</y>
+      <w>336</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>MechanumSteering
+--
+--
++MechanumSteering(ChassisParams &amp;chassisParams, MotorParams &amp;motorParams, SocketCAN &amp;can)
++~MechanumSteering()
++void run()
+-void joyCallback(const sensor_msgs::Joy::ConstPtr&amp; joy)
+-void velocityCallback(const geometry_msgs::Twist::ConstPtr&amp; cmd)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>360</x>
+      <y>240</y>
+      <w>18</w>
+      <h>252</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=2</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;400.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>522</x>
+      <y>174</y>
+      <w>336</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>SkidSteering
+--
+--
++SkidSteering(ChassisParams &amp;chassisParams, MotorParams &amp;motorParams, SocketCAN &amp;can)
++~SkidSteering()
++void run()
+-void joyCallback(const sensor_msgs::Joy::ConstPtr&amp; joy)
+-void velocityCallback(const geometry_msgs::Twist::ConstPtr&amp; cmd)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>570</x>
+      <y>240</y>
+      <w>24</w>
+      <h>252</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=3</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;400.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>888</x>
+      <y>312</y>
+      <w>192</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>*Abstract CAN message observer class*
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>438</x>
+      <y>240</y>
+      <w>36</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;40.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>516</x>
+      <y>240</y>
+      <w>36</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>40.0;10.0;10.0;80.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>390</x>
+      <y>906</y>
+      <w>186</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>*Interface to CAN layer*
+- Message polling loop runs in own thread
+- Notifies CAN listener with specific ID
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>570</x>
+      <y>918</y>
+      <w>66</w>
+      <h>18</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>432</x>
+      <y>288</y>
+      <w>126</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>*Chassis-specific classes*
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>846</x>
+      <y>318</y>
+      <w>54</w>
+      <h>18</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>70.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>120</x>
+      <y>528</y>
+      <w>150</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>*Interface to Motor controller*
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>264</x>
+      <y>540</y>
+      <w>84</w>
+      <h>18</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;120.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>972</x>
+      <y>684</y>
+      <w>150</w>
+      <h>30</h>
+    </coordinates>
+    <panel_attributes>*Interface to DCDC converter*
+bg=yellow</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1032</x>
+      <y>636</y>
+      <w>18</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>
+  </element>
+</diagram>
