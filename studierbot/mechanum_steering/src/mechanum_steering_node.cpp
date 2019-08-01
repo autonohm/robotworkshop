@@ -15,9 +15,9 @@ int main(int argc, char** argv)
   std::string canInterface;
   int maxPulseWidth;
   int frequencyScale;
-  nh.param("track",          chassisParams.track,         0.3f);
-  nh.param("wheelBase",      chassisParams.wheelBase,     0.3f);
-  nh.param("wheelDiameter",  chassisParams.wheelDiameter, 0.1f);
+  nh.param("track",          chassisParams.track,               0.3f);
+  nh.param("wheelBase",      chassisParams.wheelBase,           0.3f);
+  nh.param("wheelDiameter",  chassisParams.wheelDiameter,       0.1f);
   nh.param("idFrontLeft",    chassisParams.frontLeft.id,        0);
   nh.param("chFrontLeft",    chassisParams.frontLeft.channel,   0);
   nh.param("idFrontRight",   chassisParams.frontRight.id,       0);
