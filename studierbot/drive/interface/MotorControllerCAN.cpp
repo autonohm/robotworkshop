@@ -129,6 +129,12 @@ MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned int canID, Motor
     retval = false;
   }
   usleep(1000);
+  if(!setAntiWindup(params.antiWindup))
+  {
+    std::cout << "# Setting differential factor of PID controller failed for device " << canID << std::endl;
+    retval = false;
+  }
+  usleep(1000);
   if(!setInputWeight(params.inputWeight))
   {
     std::cout << "# Setting differential factor of PID controller failed for device " << canID << std::endl;
@@ -354,6 +360,23 @@ bool MotorControllerCAN::setKd(float kd)
 float MotorControllerCAN::getKd()
 {
   return _params.kd;
+}
+
+bool MotorControllerCAN::setAntiWindup(bool activate)
+{
+   bool retval = false;
+  _cf.can_dlc = 2;
+  _cf.data[0] = CMD_CTL_ANTIWINDUP;
+  _cf.data[1] = activate;
+  retval = _can->send(&_cf);
+  if(retval)
+    _params.antiWindup = activate;
+  return retval;
+}
+
+bool MotorControllerCAN::getAntiWindup()
+{
+  return _params.antiWindup;
 }
 
 bool MotorControllerCAN::setInputWeight(float weight)

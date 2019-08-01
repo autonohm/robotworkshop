@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?><diagram program="umlet" version="13.3">
-  <zoom_level>6</zoom_level>
+  <zoom_level>5</zoom_level>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>756</x>
-      <y>330</y>
-      <w>174</w>
-      <h>84</h>
+      <x>580</x>
+      <y>270</y>
+      <w>145</w>
+      <h>70</h>
     </coordinates>
     <panel_attributes>/SocketCANObserver/
 --
@@ -22,10 +22,10 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>624</x>
-      <y>864</y>
-      <w>252</w>
-      <h>120</h>
+      <x>470</x>
+      <y>715</y>
+      <w>210</w>
+      <h>100</h>
     </coordinates>
     <panel_attributes>SocketCAN
 --
@@ -45,10 +45,10 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>732</x>
-      <y>786</y>
-      <w>18</w>
-      <h>90</h>
+      <x>560</x>
+      <y>650</y>
+      <w>15</w>
+      <h>75</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 m1=1
@@ -58,10 +58,10 @@ m2=1</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>336</x>
-      <y>480</y>
-      <w>438</w>
-      <h>312</h>
+      <x>230</x>
+      <y>380</y>
+      <w>365</w>
+      <h>275</h>
     </coordinates>
     <panel_attributes>MotorcontrollerCAN
 --
@@ -91,6 +91,8 @@ m2=1</panel_attributes>
 +float getKi()
 +bool setKd(float kd)
 +float getKd()
++bool setAntiWindup(bool activate)
++bool getAntiWindup()
 +bool setInputWeight(float weight)
 +float getInputWeight()
 +bool waitForSync(unsigned int timeoutInMillis=100)
@@ -101,21 +103,21 @@ m2=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>756</x>
-      <y>408</y>
-      <w>18</w>
-      <h>84</h>
+      <x>580</x>
+      <y>335</y>
+      <w>15</w>
+      <h>55</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;120.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>792</x>
-      <y>408</y>
-      <w>30</w>
-      <h>468</h>
+      <x>610</x>
+      <y>335</y>
+      <w>25</w>
+      <h>390</h>
     </coordinates>
     <panel_attributes>lt=&lt;-
 m1=0..*
@@ -125,10 +127,10 @@ m2=1</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>822</x>
-      <y>480</y>
-      <w>336</w>
-      <h>162</h>
+      <x>635</x>
+      <y>395</y>
+      <w>280</w>
+      <h>135</h>
     </coordinates>
     <panel_attributes>AddonShieldCAN
 --
@@ -152,10 +154,10 @@ m2=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>834</x>
-      <y>408</y>
-      <w>18</w>
-      <h>84</h>
+      <x>645</x>
+      <y>335</y>
+      <w>15</w>
+      <h>70</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;-</panel_attributes>
     <additional_attributes>10.0;10.0;10.0;120.0</additional_attributes>
@@ -163,10 +165,10 @@ m2=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>870</x>
-      <y>636</y>
-      <w>54</w>
-      <h>294</h>
+      <x>675</x>
+      <y>525</y>
+      <w>45</w>
+      <h>245</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;-
 m1=1
@@ -176,10 +178,10 @@ m2=1</panel_attributes>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>270</x>
-      <y>180</y>
-      <w>444</w>
-      <h>72</h>
+      <x>175</x>
+      <y>145</y>
+      <w>370</w>
+      <h>60</h>
     </coordinates>
     <panel_attributes>MechanumSteering
 --
@@ -194,23 +196,23 @@ m2=1</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>438</x>
-      <y>246</y>
-      <w>18</w>
-      <h>246</h>
+      <x>315</x>
+      <y>200</y>
+      <w>15</w>
+      <h>190</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
 m1=1
 m2=2</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;390.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;360.0</additional_attributes>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>726</x>
-      <y>180</y>
-      <w>414</w>
-      <h>72</h>
+      <x>555</x>
+      <y>145</y>
+      <w>345</w>
+      <h>60</h>
     </coordinates>
     <panel_attributes>SkidSteering
 --
@@ -225,23 +227,23 @@ m2=2</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>732</x>
-      <y>246</y>
-      <w>24</w>
-      <h>246</h>
+      <x>560</x>
+      <y>200</y>
+      <w>20</w>
+      <h>190</h>
     </coordinates>
     <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
 m1=1
 m2=3</panel_attributes>
-    <additional_attributes>10.0;10.0;10.0;390.0</additional_attributes>
+    <additional_attributes>10.0;10.0;10.0;360.0</additional_attributes>
   </element>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>954</x>
-      <y>354</y>
-      <w>192</w>
-      <h>30</h>
+      <x>745</x>
+      <y>290</y>
+      <w>160</w>
+      <h>25</h>
     </coordinates>
     <panel_attributes>*Abstract CAN message observer class*
 bg=yellow</panel_attributes>
@@ -250,10 +252,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>654</x>
-      <y>246</y>
-      <w>18</w>
-      <h>54</h>
+      <x>495</x>
+      <y>200</y>
+      <w>15</w>
+      <h>45</h>
     </coordinates>
     <panel_attributes>lt=.</panel_attributes>
     <additional_attributes>10.0;10.0;10.0;70.0</additional_attributes>
@@ -261,10 +263,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>678</x>
-      <y>246</y>
-      <w>60</w>
-      <h>54</h>
+      <x>515</x>
+      <y>200</y>
+      <w>50</w>
+      <h>45</h>
     </coordinates>
     <panel_attributes>lt=.</panel_attributes>
     <additional_attributes>80.0;10.0;10.0;70.0</additional_attributes>
@@ -272,10 +274,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>390</x>
-      <y>906</y>
-      <w>186</w>
-      <h>36</h>
+      <x>275</x>
+      <y>750</y>
+      <w>155</w>
+      <h>30</h>
     </coordinates>
     <panel_attributes>*Interface to CAN layer*
 - Message polling loop runs in own thread
@@ -286,10 +288,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>570</x>
-      <y>918</y>
-      <w>66</w>
-      <h>18</h>
+      <x>425</x>
+      <y>760</y>
+      <w>55</w>
+      <h>15</h>
     </coordinates>
     <panel_attributes>lt=.</panel_attributes>
     <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
@@ -297,10 +299,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>594</x>
-      <y>288</y>
-      <w>126</w>
-      <h>30</h>
+      <x>445</x>
+      <y>235</y>
+      <w>105</w>
+      <h>25</h>
     </coordinates>
     <panel_attributes>*Chassis-specific classes*
 bg=yellow</panel_attributes>
@@ -309,10 +311,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>924</x>
-      <y>360</y>
-      <w>42</w>
-      <h>18</h>
+      <x>720</x>
+      <y>295</y>
+      <w>35</w>
+      <h>15</h>
     </coordinates>
     <panel_attributes>lt=.</panel_attributes>
     <additional_attributes>50.0;10.0;10.0;10.0</additional_attributes>
@@ -320,10 +322,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>336</x>
-      <y>828</y>
-      <w>150</w>
-      <h>30</h>
+      <x>230</x>
+      <y>685</y>
+      <w>125</w>
+      <h>25</h>
     </coordinates>
     <panel_attributes>*Interface to Motor controller*
 bg=yellow</panel_attributes>
@@ -332,10 +334,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>402</x>
-      <y>786</y>
-      <w>18</w>
-      <h>54</h>
+      <x>285</x>
+      <y>650</y>
+      <w>15</w>
+      <h>45</h>
     </coordinates>
     <panel_attributes>lt=.</panel_attributes>
     <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
@@ -343,10 +345,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>UMLNote</id>
     <coordinates>
-      <x>972</x>
-      <y>684</y>
-      <w>150</w>
-      <h>30</h>
+      <x>760</x>
+      <y>565</y>
+      <w>125</w>
+      <h>25</h>
     </coordinates>
     <panel_attributes>*Interface to DCDC converter*
 bg=yellow</panel_attributes>
@@ -355,10 +357,10 @@ bg=yellow</panel_attributes>
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>1032</x>
-      <y>636</y>
-      <w>18</w>
-      <h>60</h>
+      <x>810</x>
+      <y>525</y>
+      <w>15</w>
+      <h>50</h>
     </coordinates>
     <panel_attributes>lt=.</panel_attributes>
     <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>

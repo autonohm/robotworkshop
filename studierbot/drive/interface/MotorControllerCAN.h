@@ -251,6 +251,19 @@ public:
   float getKd();
 
   /**
+   * Activate/Deactivate anti windup functionality of PID controller
+   * @param[in] activate activation==true, deactivation==false
+   * @return success
+   */
+  bool setAntiWindup(bool activate);
+
+  /**
+   * Accessor to anti windup parameter of PID controller
+   * @return anti windup activation
+   */
+  bool getAntiWindup();
+
+  /**
    * Set weight of input filter. Input values f are filtered with f'=weight*f'+(1-weight)*f.
    * @param[in] filtering weight. A value of 0 disables the filter. The value must be in the range of [0;1[
    */
