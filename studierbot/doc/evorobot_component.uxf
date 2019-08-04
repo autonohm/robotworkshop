@@ -73,7 +73,7 @@ Jetson TX2</panel_attributes>
       <h>80</h>
     </coordinates>
     <panel_attributes>symbol=component
-USBTin</panel_attributes>
+USBtin</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
