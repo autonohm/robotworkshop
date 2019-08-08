@@ -21,21 +21,10 @@ MainWindow::MainWindow(QWidget *parent) :
     _shield->disable(4);
     _shield->waitForSync(100);
 
-    on_pwm2_freq_valueChanged(50);
-    _shield->waitForSync(100);
-    _shield->setPWMFrequency(3, 50);
-    _shield->waitForSync(100);
-    _shield->setPWMFrequency(4, 50);
-
-    _freq2 = 50;
+    _freq1 = 0;
+    _duty1 = 0;
+    _freq2 = 0;
     _duty2 = 0;
-    _duty3 = 0;
-    _duty4 = 0;
-
-    _shield->setPulseWidth(3, _duty3);
-    _shield->waitForSync(100);
-    _shield->setPulseWidth(4, _duty4);
-    _shield->waitForSync(100);
 
     _timer = new QTimer(this);
     connect(_timer, SIGNAL(timeout()), this, SLOT(on_timer_update()));
@@ -68,29 +57,42 @@ void MainWindow::on_cbCh2_stateChanged(int arg1)
 void MainWindow::on_cbCh3_stateChanged(int arg1)
 {
     if(arg1)
+    {
         _shield->enable(3);
+        ui->cb12V->setEnabled(false);
+    }
     else
+    {
         _shield->disable(3);
+        ui->cb12V->setEnabled(true);
+    }
 }
 
 void MainWindow::on_cbCh4_stateChanged(int arg1)
 {
     if(arg1)
+    {
         _shield->enable(4);
+        ui->cb19V->setEnabled(false);
+    }
     else
+    {
         _shield->disable(4);
+        ui->cb19V->setEnabled(true);
+    }
 }
 
-int duty2PWM(float duty, float freq)
+void MainWindow::on_pwm1_freq_valueChanged(int value)
 {
-    float period = 1.f/((float)freq); // period in sec.
-    return (int)(duty / period * 100.f);
+    _shield->setPWMFrequency(1, value);
+    _freq1  = value;
+    ui->lcdPWM1->display(value);
 }
 
-float pwm2Duty(int pwm, float freq)
+void MainWindow::on_pwm1_duty_valueChanged(int value)
 {
-    float period = 1.f/((float)freq); // period in sec.
-    return ((float)pwm) / 100.f * period;
+    _shield->setPulseWidth(1, value);
+    ui->lcdDuty1->display(value);
 }
 
 void MainWindow::on_pwm2_freq_valueChanged(int value)
@@ -102,15 +104,8 @@ void MainWindow::on_pwm2_freq_valueChanged(int value)
 
 void MainWindow::on_pwm2_duty_valueChanged(int value)
 {
-    float dutyMin = 750.f/1000000.f;  // min duty of servo HD 1810MG
-    float dutyMax = 2250.f/1000000.f; // max duty of servo HD 1810MG
-    float pwmMin  = duty2PWM(dutyMin, _freq2);
-    float pwmMax  = duty2PWM(dutyMax, _freq2);
-    if(value<pwmMin || value>pwmMax)
-        return;
-    _duty2 = pwm2Duty(value, _freq2);
     _shield->setPulseWidth(2, value);
-    ui->lcdDuty2->display(_duty2*1000.f);
+    ui->lcdDuty2->display(value);
 }
 
 void MainWindow::on_cb12V_stateChanged(int arg1)
@@ -129,31 +124,12 @@ void MainWindow::on_cb19V_stateChanged(int arg1)
         _shield->disable19V();
 }
 
-void MainWindow::on_pwm3_freq_valueChanged(int value)
-{
-    _shield->setPWMFrequency(3, value);
-    _shield->setPulseWidth(3, _duty3);
-}
-
-void MainWindow::on_pwm3_duty_valueChanged(int value)
-{
-    _duty3 = value;
-    _shield->setPulseWidth(3, value);
-}
-
-void MainWindow::on_pwm4_freq_valueChanged(int value)
-{
-    _shield->setPWMFrequency(4, value);
-    _shield->setPulseWidth(4, _duty4);
-}
-
-void MainWindow::on_pwm4_duty_valueChanged(int value)
-{
-    _duty4 = value;
-    _shield->setPulseWidth(4, value);
-}
-
 void MainWindow::on_timer_update()
 {
     ui->lcdVoltage->display(_shield->getVoltage());
+}
+
+void MainWindow::on_cbCh2_clicked()
+{
+
 }

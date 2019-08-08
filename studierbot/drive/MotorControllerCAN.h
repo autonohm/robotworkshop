@@ -1,7 +1,7 @@
 #ifndef _MOTORCONTROLLERCAN_H_
 #define _MOTORCONTROLLERCAN_H_
 
-#include "SocketCAN.h"
+#include "../interface/can/SocketCAN.h"
 #include <vector>
 
 enum CanResponse

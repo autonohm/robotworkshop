@@ -1,7 +1,7 @@
 #ifndef _ADDONSHIELDCAN_H_
 #define _ADDONSHIELDCAN_H_
 
-#include "SocketCAN.h"
+#include "../interface/can/SocketCAN.h"
 #include <vector>
 
 /**

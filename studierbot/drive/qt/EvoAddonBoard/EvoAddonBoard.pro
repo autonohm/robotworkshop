@@ -11,13 +11,14 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = EvoAddonBoard
 TEMPLATE = app
 
-INCLUDEPATH = ../..
+INCLUDEPATH  = ../..
+INCLUDEPATH += ../../../interface/can
 
 SOURCES += main.cpp\
         mainwindow.cpp\
         ../../AddonShieldCAN.cpp\
-        ../../SocketCAN.cpp\
-        ../../SocketCANObserver.cpp
+        ../../../interface/can/SocketCAN.cpp\
+        ../../../interface/can/SocketCANObserver.cpp
 
 HEADERS += mainwindow.h \
         ../../AddonShieldCAN.h

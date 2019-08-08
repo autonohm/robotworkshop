@@ -24,6 +24,10 @@ private slots:
 
     void on_cbCh4_stateChanged(int arg1);
 
+    void on_pwm1_freq_valueChanged(int value);
+
+    void on_pwm1_duty_valueChanged(int value);
+
     void on_pwm2_freq_valueChanged(int value);
 
     void on_pwm2_duty_valueChanged(int value);
@@ -32,15 +36,9 @@ private slots:
 
     void on_cb19V_stateChanged(int arg1);
 
-    void on_pwm3_freq_valueChanged(int value);
-
-    void on_pwm3_duty_valueChanged(int value);
-
-    void on_pwm4_freq_valueChanged(int value);
-
-    void on_pwm4_duty_valueChanged(int value);
-
     void on_timer_update();
+
+    void on_cbCh2_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -49,10 +47,10 @@ private:
     SocketCAN*      _can;
     QTimer*         _timer;
 
+    float _freq1;
+    float _duty1;
     float _freq2;
     float _duty2;
-    int   _duty3;
-    int   _duty4;
 };
 
 #endif // MAINWINDOW_H

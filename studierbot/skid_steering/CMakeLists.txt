@@ -96,6 +96,8 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ../interface/can
+  ../drive
   /usr/local/include
 )
 
@@ -108,11 +110,10 @@ include_directories(
 add_executable(skid_steering_node
  src/skid_steering_node.cpp
  src/SkidSteering.cpp
-  ../drive/interface/MotorControllerCAN.cpp
-  ../drive/interface/AddonShieldCAN.cpp
-  ../drive/interface/control.cpp
-  ../drive/interface/SocketCAN.cpp
-  ../drive/interface/SocketCANObserver.cpp
+  ../drive/MotorControllerCAN.cpp
+  ../drive/AddonShieldCAN.cpp
+  ../interface/can/SocketCAN.cpp
+  ../interface/can/SocketCANObserver.cpp
 )
 
 ## Add cmake target dependencies of the executable/library

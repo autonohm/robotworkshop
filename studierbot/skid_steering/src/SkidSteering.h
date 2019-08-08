@@ -6,8 +6,8 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../drive/interface/MotorControllerCAN.h"
-#include "../../drive/interface/AddonShieldCAN.h"
+#include "MotorControllerCAN.h"
+#include "AddonShieldCAN.h"
 
 using namespace std;
 

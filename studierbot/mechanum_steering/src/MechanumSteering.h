@@ -6,7 +6,7 @@
 #include <geometry_msgs/Twist.h>
 
 #include <iostream>
-#include "../../drive/interface/MotorControllerCAN.h"
+#include "MotorControllerCAN.h"
 
 using namespace std;
 
