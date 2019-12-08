@@ -114,10 +114,10 @@ void MechanumSteering::normalizeAndMap(float vFwd, float vLeft, float omega)
   //cout << "rpmFwd: " << rpmFwd << ", rpmLeft: " << rpmLeft << ", rpmOmega: " << rpmOmega << endl;
 
   // leading signs -> see derivation: Stefan May, Skriptum Mobile Robotik
-  _rpm[_chassisParams.frontLeft.id  * 2 + _chassisParams.frontLeft.channel]  = -rpmFwd + rpmLeft + rpmOmega;
-  _rpm[_chassisParams.frontRight.id * 2 + _chassisParams.frontRight.channel] =  rpmFwd + rpmLeft + rpmOmega;
-  _rpm[_chassisParams.rearLeft.id   * 2 + _chassisParams.rearLeft.channel]   = -(-rpmFwd + rpmLeft - rpmOmega);
-  _rpm[_chassisParams.rearRight.id  * 2 + _chassisParams.rearRight.channel]  =  -(rpmFwd + rpmLeft - rpmOmega);
+  _rpm[_chassisParams.frontLeft.id  * 2 + _chassisParams.frontLeft.channel]  =  rpmFwd - rpmLeft - rpmOmega;
+  _rpm[_chassisParams.frontRight.id * 2 + _chassisParams.frontRight.channel] = -rpmFwd - rpmLeft - rpmOmega;
+  _rpm[_chassisParams.rearLeft.id   * 2 + _chassisParams.rearLeft.channel]   =  rpmFwd + rpmLeft - rpmOmega;
+  _rpm[_chassisParams.rearRight.id  * 2 + _chassisParams.rearRight.channel]  = -rpmFwd + rpmLeft - rpmOmega;
 
   // possibility to flip directions
   _rpm[0] *= _chassisParams.direction;

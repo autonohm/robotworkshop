@@ -10,7 +10,7 @@
     <param name="wheelDiameter" value="0.06"/>
     
     <!-- Socket CAN interface -->
-    <param name="canInterface"       value="slcan0"/>
+    <param name="canInterface"       value="can0"/>
     
     <param name="frequencyScale"     value="32"/>
     <param name="maxPulseWidth"      value="127"/>
@@ -39,18 +39,18 @@
          <param name="rpmMax"        value="88.0"/>
 
     <!-- Channel assignment to motor mounting -->
-    <param name="idFrontLeft"   value="0"/>
+    <param name="idFrontLeft"   value="1"/>
     <param name="chFrontLeft"   value="0"/>
-    <param name="idFrontRight"  value="0"/>
+    <param name="idFrontRight"  value="1"/>
     <param name="chFrontRight"  value="1"/>
-    <param name="idRearLeft"    value="1"/>
-    <param name="chRearLeft"    value="0"/>
-    <param name="idRearRight"   value="1"/>
-    <param name="chRearRight"   value="1"/>
+    <param name="idRearLeft"    value="0"/>
+    <param name="chRearLeft"    value="1"/>
+    <param name="idRearRight"   value="0"/>
+    <param name="chRearRight"   value="0"/>
     
     <!-- Polarity parameter, accepted values are 1 and -1. -->
     <!-- With this parameter the direction of rotation can be reversed -->  
-    <param name="direction"     value="-1"/>
+    <param name="direction"     value="1"/>
     
     <!-- PID controller parameters -->
     <param name="kp"            value="3.0"/>
