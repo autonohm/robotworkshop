@@ -1,0 +1,62 @@
+<launch>
+  <node pkg="mechanum_steering" type="mechanum_steering_node" name="mechanum_steering_node" output="screen">
+    <!-- Distance between wheel/track contact points of left and right side -->
+    <param name="track"         value="0.12"/>
+    
+    <!-- Distance between wheel/track contact points of front and rear axle -->
+    <param name="wheelBase"     value="0.14"/>
+    
+    <!-- Diameter of driving wheel(s). For tracks use the diameter of the pinion -->
+    <param name="wheelDiameter" value="0.06"/>
+    
+    <!-- Socket CAN interface -->
+    <param name="canInterface"       value="slcan0"/>
+    
+    <param name="frequencyScale"     value="32"/>
+    <param name="maxPulseWidth"      value="127"/>
+    <param name="inputWeight"        value="0.8"/>
+        
+    <!-- Gearmotor/Encoder parameters -->
+    <!-- Tested motors are: -->
+    <!-- 131:1 Metal Gearmotor 37Dx57L mm with 64 CPR Encoder -->
+    <!-- <param name="gearRatio"     value="131.0"/>
+         <param name="encoderRatio"  value="64.0"/>
+         <param name="rpmMax"        value="80.0"/> -->
+    
+    <!-- 99:1 Metal Gearmotor 25Dx54L mm MP 12V with 48 CPR Encoder -->
+    <!-- <param name="gearRatio"     value="99.0"/>
+         <param name="encoderRatio"  value="48.0"/>
+         <param name="rpmMax"        value="100.0"/>-->
+    
+    <!-- Nexus DC Motor 16002, Faulhaber 2342G012CR, 64:1 -->
+    <!-- <param name="gearRatio"     value="64.0"/>
+         <param name="encoderRatio"  value="48.0"/>
+         <param name="rpmMax"        value="120.0"/> -->
+    
+    <!-- Pololu Micro Metal Motor, 250:1 -->
+         <param name="gearRatio"     value="250.0"/>
+         <param name="encoderRatio"  value="48.0"/>
+         <param name="rpmMax"        value="88.0"/>
+
+    <!-- Channel assignment to motor mounting -->
+    <param name="idFrontLeft"   value="0"/>
+    <param name="chFrontLeft"   value="0"/>
+    <param name="idFrontRight"  value="0"/>
+    <param name="chFrontRight"  value="1"/>
+    <param name="idRearLeft"    value="1"/>
+    <param name="chRearLeft"    value="0"/>
+    <param name="idRearRight"   value="1"/>
+    <param name="chRearRight"   value="1"/>
+    
+    <!-- Polarity parameter, accepted values are 1 and -1. -->
+    <!-- With this parameter the direction of rotation can be reversed -->  
+    <param name="direction"     value="-1"/>
+    
+    <!-- PID controller parameters -->
+    <param name="kp"            value="3.0"/>
+    <param name="ki"            value="1000.0"/>
+    <param name="kd"            value="0.0"/>
+    <param name="antiWindup"    value="1"/>
+    <param name="invertEnc"     value="1"/>
+  </node>
+</launch>

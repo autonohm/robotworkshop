@@ -17,6 +17,7 @@
 #define CMD_SETPWMMAX       0x04
 #define CMD_SENDRPM         0x05
 #define CMD_SENDPOS         0x06
+#define CMD_INVERTENC       0x07
 
 // Operating commands
 #define CMD_SETPWM          0x10
@@ -62,6 +63,7 @@ MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned int canID, Motor
     std::cout << "ki             = " << params.ki << std::endl;
     std::cout << "kd             = " << params.kd << std::endl;
     std::cout << "antiWindup     = " << params.antiWindup << std::endl;
+    std::cout << "invertEnc      = " << params.invertEnc << std::endl;
     std::cout << "---------------------------" << std::endl << std::endl;
   }
 
@@ -146,6 +148,12 @@ MotorControllerCAN::MotorControllerCAN(SocketCAN* can, unsigned int canID, Motor
     std::cout << "# Setting response mode failed for device " << canID << std::endl;
     retval = false;
   }
+  usleep(1000);
+  if(!invertEncoderPolarity(params.invertEnc))
+  {
+    std::cout << "# Setting encoder polarity failed for device " << canID << std::endl;
+    retval = false;
+  }
   usleep(25000);
 
   if(!retval)
@@ -192,6 +200,17 @@ bool MotorControllerCAN::configureResponse(enum CanResponse mode)
     _cf.data[0] = CMD_SENDRPM;
   else
     _cf.data[0] = CMD_SENDPOS;
+  return _can->send(&_cf);
+}
+
+bool MotorControllerCAN::invertEncoderPolarity(bool invert)
+{
+  _cf.can_dlc = 2;
+  _cf.data[0] = CMD_INVERTENC;
+  if(invert)
+    _cf.data[1] = 1;
+  else
+    _cf.data[1] = 0;
   return _can->send(&_cf);
 }
 

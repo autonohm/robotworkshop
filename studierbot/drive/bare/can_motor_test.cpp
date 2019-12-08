@@ -34,7 +34,7 @@ void setRPM(MotorControllerCAN* mc, float val)
   }
 }
 
-#define _INSTANCES 3
+#define _INSTANCES 2
 int main(int argc, char* argv[])
 {
   MotorParams motorParams;
@@ -42,14 +42,15 @@ int main(int argc, char* argv[])
   motorParams.inputWeight    = 0.8f;  // Smoothing parameter for input values: smoothVal = inputWeight x prevVal + (1.f-inputWeight) x newVal
   motorParams.maxPulseWidth  = 127;   // Set maxPulse to 127 to apply full power
   motorParams.timeout        = 300;
-  motorParams.gearRatio      = 99.f;
+  motorParams.gearRatio      = 250.f;
   motorParams.encoderRatio   = 48.f;
   motorParams.rpmMax         = 100;
-  motorParams.responseMode   = CAN_RESPONSE_POS;
+  motorParams.responseMode   = CAN_RESPONSE_RPM;
   motorParams.kp             = 2.f;
-  motorParams.ki             = 200.f;
+  motorParams.ki             = 1000.f;
   motorParams.kd             = 0.f;
   motorParams.antiWindup     = 1;
+  motorParams.invertEnc      = 1;
 
   SocketCAN can(std::string("slcan0"));
   can.startListener();
@@ -68,7 +69,7 @@ int main(int argc, char* argv[])
       mc[0]->broadcastExternalSync();
 
     float phase = ((float)i) * (2.f*M_PI) * 0.002;
-    float amplitude = 40.f;
+    float amplitude = 3.f;
     float val = (sin(phase) * amplitude);
     //float val = amplitude;
     for(dev=0; dev<mc.size(); dev++)

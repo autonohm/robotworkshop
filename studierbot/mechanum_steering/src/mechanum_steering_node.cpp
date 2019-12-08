@@ -37,6 +37,7 @@ int main(int argc, char** argv)
   nh.param("ki",             motorParams.ki,                    0.f);
   nh.param("kd",             motorParams.kd,                    0.f);
   nh.param("antiWindup",     motorParams.antiWindup,            1);
+  nh.param("invertEnc",      motorParams.invertEnc,             0);
 
   if(maxPulseWidth<0)   maxPulseWidth = 0;
   if(maxPulseWidth>127) maxPulseWidth = 127;

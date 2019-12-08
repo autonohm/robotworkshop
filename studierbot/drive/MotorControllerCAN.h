@@ -24,6 +24,7 @@ struct MotorParams
   float            ki;
   float            kd;
   int              antiWindup;
+  int              invertEnc;
 
   /**
    * Standard constructor assigns default parameters
@@ -42,6 +43,7 @@ struct MotorParams
     ki             = 0.f;
     kd             = 0.f;
     antiWindup     = 1;
+    invertEnc      = 0;
   }
 
   /**
@@ -62,6 +64,7 @@ struct MotorParams
     ki             = p.ki;
     kd             = p.kd;
     antiWindup     = p.antiWindup;
+    invertEnc      = p.invertEnc;
   }
 };
 
@@ -112,6 +115,13 @@ public:
    * @return successful transmission of configure command
    */
   bool configureResponse(enum CanResponse mode);
+
+  /**
+   * Invert encoder polarity
+   * @param[in] invert set to true, if channels need to be inverted
+   * @return successful transmission of configure command
+   */
+  bool invertEncoderPolarity(bool invert);
 
   /**
    * Get assigned canID via constructor
