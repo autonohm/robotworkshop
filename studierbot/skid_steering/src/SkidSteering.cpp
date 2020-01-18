@@ -51,6 +51,7 @@ void SkidSteering::run()
   _lastCmd = ros::Time::now();
   unsigned int cnt = 0;
   bool run = true;
+  bool frontWheelsOnly;
 
   float uSetpointLowPass = 1500.f;
   while(run)
@@ -98,10 +99,24 @@ void SkidSteering::run()
       }
 
       if(_fireButton)
+      {
+        if(!frontWheelsOnly)
+        {
+         _mc[1]->disable();
+         _mc[2]->disable();
+        } else
+        {
+          _mc[1]->enable();
+          _mc[1]->enable();
+        }
+        
+      }
+/*    
+      if(_fireButton)
         _addon->setPulseWidth(3, 100);
       else
         _addon->setPulseWidth(3, 30);
-
+*/
       float servoFrequency = 330.f;
       float uSetpoint = 1500.f + (_cooliehatLR) * 500.f;
       uSetpointLowPass = 0.9f * uSetpointLowPass + 0.1f * uSetpoint;
@@ -142,6 +157,8 @@ void SkidSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   _vr = _vMax * speed * (linear+angular);
 
   normalizeVelocity(_vl, _vr);
+
+  //Define button vars
   _fireButton  = joy->buttons[0];
   _cooliehatLR = (float)joy->axes[4];
 
