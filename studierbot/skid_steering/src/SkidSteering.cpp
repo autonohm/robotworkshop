@@ -160,6 +160,17 @@ void SkidSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
   //Define button vars
   _fireButton  = joy->buttons[0];
+  _thumbButton = joy->buttons[1];
+  _ulButton = joy->buttons[4];
+  _urButton = joy->buttons[5];
+  _llButton = joy->buttons[2];
+  _lrButton = joy->buttons[3];
+  _bottomButton7 = joy->buttons[6];
+  _bottomButton8 = joy->buttons[7];
+  _bottomButton9 = joy->buttons[8];
+  _bottomButton10 = joy->buttons[9];
+  _buttonButton11 = joy->buttons[10];
+  _buttonButton12 = joy->buttons[11];
   _cooliehatLR = (float)joy->axes[4];
 
   _lastCmd = ros::Time::now();

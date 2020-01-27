@@ -121,7 +121,20 @@ private:
   AddonShieldCAN*        _addon;
 
   float                  _vl, _vr;
+  //Buttons
   unsigned int           _fireButton;
+  bool                   _thumbButton;
+  bool                   _ulButton;
+  bool                   _urButton;
+  bool                   _llButton;
+  bool                   _lrButton;
+  bool                   _bottomButton7;
+  bool                   _bottomButton8;
+  bool                   _bottomButton9;
+  bool                   _bottomButton10;
+  bool                   _buttonButton11;
+  bool                   _buttonButton12;
+  //Joystick axes
   float                  _cooliehatLR;
 
   // maximum velocity [m/s]
