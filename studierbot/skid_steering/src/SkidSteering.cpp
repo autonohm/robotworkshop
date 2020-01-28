@@ -52,6 +52,7 @@ void SkidSteering::run()
   unsigned int cnt = 0;
   bool run = true;
   bool frontWheelsOnly;
+  bool rearWheelsOnly;
 
   float uSetpointLowPass = 1500.f;
   while(run)
@@ -97,8 +98,12 @@ void SkidSteering::run()
           std::cout << "# Failed to set RPM values for CAN ID" << _mc[i]->getCanId() << std::endl;
         }
       }
-
-      if(_fireButton)
+//Joystick button mapping section
+      if(_thumbButton)
+      {
+        //Invertierung
+      }
+      if(_bottomButton7)
       {
         if(!frontWheelsOnly)
         {
@@ -107,6 +112,19 @@ void SkidSteering::run()
         } else
         {
           _mc[1]->enable();
+          _mc[2]->enable();
+        }
+      }
+
+      if(_bottomButton8)
+      {
+        if(!rearWheelsOnly)
+        {
+         _mc[0]->disable();
+         _mc[1]->disable();
+        } else
+        {
+          _mc[0]->enable();
           _mc[1]->enable();
         }
       }
