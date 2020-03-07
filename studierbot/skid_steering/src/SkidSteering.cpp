@@ -103,7 +103,7 @@ void SkidSteering::run()
       {
         //Invertierung
       }
-      
+
       if(_bottomButton7)
       {
         if(!frontWheelsOnly)

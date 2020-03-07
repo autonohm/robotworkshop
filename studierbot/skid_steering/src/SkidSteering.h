@@ -122,7 +122,7 @@ private:
 
   float                  _vl, _vr;
   //Buttons
-  unsigned int           _fireButton;
+  bool                   _fireButton;
   bool                   _thumbButton;
   bool                   _ulButton;
   bool                   _urButton;
