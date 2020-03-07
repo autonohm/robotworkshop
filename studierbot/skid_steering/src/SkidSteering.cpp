@@ -103,16 +103,19 @@ void SkidSteering::run()
       {
         //Invertierung
       }
+      
       if(_bottomButton7)
       {
         if(!frontWheelsOnly)
         {
          _mc[1]->disable();
          _mc[2]->disable();
+         frontWheelsOnly = true;
         } else
         {
           _mc[1]->enable();
           _mc[2]->enable();
+          frontWheelsOnly = false;
         }
       }
 
@@ -122,10 +125,12 @@ void SkidSteering::run()
         {
          _mc[0]->disable();
          _mc[1]->disable();
+         rearWheelsOnly = true;
         } else
         {
           _mc[0]->enable();
           _mc[1]->enable();
+          rearWheelsOnly = false;
         }
       }
 
