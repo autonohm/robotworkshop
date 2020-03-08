@@ -101,6 +101,11 @@ private:
   float trackspeedToRPM(float v) const;
 
   /**
+   * Returns if button was released
+   */
+  bool buttonReleased(const int num, const sensor_msgs::Joy::ConstPtr& joy);
+
+  /**
    * ROS joystick callback
    * @param joy message with joystick command
    */
@@ -121,6 +126,9 @@ private:
   AddonShieldCAN*        _addon;
 
   float                  _vl, _vr;
+
+  //Array for previous button state
+  bool                   prevButtonState[12];
   //Buttons
   bool                   _fireButton;
   bool                   _thumbButton;

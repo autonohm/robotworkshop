@@ -163,6 +163,21 @@ void SkidSteering::normalizeVelocity(float &vl, float &vr)
   vr = scale * vr;
 }
 
+bool SkidSteering::buttonReleased(const int num, const sensor_msgs::Joy::ConstPtr& joy)
+{
+  const bool curState = joy->buttons[num];
+  bool* prevState = &prevButtonState[num];
+  if (*prevState && curState == false)
+  {
+    *prevState = false;
+    return true;
+  } else
+  {
+    *prevState = curState;
+    return false;
+  }
+}
+
 void SkidSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 {
   // Assignment of joystick axes to motor commands
@@ -176,18 +191,18 @@ void SkidSteering::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
   normalizeVelocity(_vl, _vr);
 
   //Define button vars
-  _fireButton  = joy->buttons[0];
-  _thumbButton = joy->buttons[1];
-  _ulButton = joy->buttons[4];
-  _urButton = joy->buttons[5];
-  _llButton = joy->buttons[2];
-  _lrButton = joy->buttons[3];
-  _bottomButton7 = joy->buttons[6];
-  _bottomButton8 = joy->buttons[7];
-  _bottomButton9 = joy->buttons[8];
-  _bottomButton10 = joy->buttons[9];
-  _buttonButton11 = joy->buttons[10];
-  _buttonButton12 = joy->buttons[11];
+  _fireButton  = buttonReleased(0, joy);
+  _thumbButton = buttonReleased(1, joy);
+  _ulButton = buttonReleased(4, joy);
+  _urButton = buttonReleased(5, joy);
+  _llButton = buttonReleased(2, joy);
+  _lrButton = buttonReleased(3, joy);
+  _bottomButton7 = buttonReleased(6, joy);
+  _bottomButton8 = buttonReleased(7, joy);
+  _bottomButton9 = buttonReleased(8, joy);
+  _bottomButton10 = buttonReleased(9, joy);
+  _buttonButton11 = buttonReleased(10, joy);
+  _buttonButton12 = buttonReleased(11, joy);
   _cooliehatLR = (float)joy->axes[4];
 
   _lastCmd = ros::Time::now();
