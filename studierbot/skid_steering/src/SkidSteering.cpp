@@ -111,11 +111,13 @@ void SkidSteering::run()
          _mc[1]->disable();
          _mc[2]->disable();
          frontWheelsOnly = true;
+         ROS_INFO("Front wheels only activated");
         } else
         {
           _mc[1]->enable();
           _mc[2]->enable();
           frontWheelsOnly = false;
+          ROS_INFO("Front wheels only deactivated");
         }
       }
 
@@ -126,11 +128,13 @@ void SkidSteering::run()
          _mc[0]->disable();
          _mc[1]->disable();
          rearWheelsOnly = true;
+         ROS_INFO("Rear wheels only activated");
         } else
         {
           _mc[0]->enable();
           _mc[1]->enable();
           rearWheelsOnly = false;
+          ROS_INFO("Rear wheels only deactivated");
         }
       }
 
