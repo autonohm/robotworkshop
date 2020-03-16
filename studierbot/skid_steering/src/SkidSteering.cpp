@@ -138,6 +138,11 @@ void SkidSteering::run()
         }
       }
 
+      if(_fireButton)
+	_addon->setPulseWidth(3, 100);
+      else
+	_addon->setPulseWidth(3, 30);
+
       float servoFrequency = 330.f;
       float uSetpoint = 1500.f + (_cooliehatLR) * 500.f;
       uSetpointLowPass = 0.9f * uSetpointLowPass + 0.1f * uSetpoint;
