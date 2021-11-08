@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "../../mechanum_steering/src/MechanumSteering.h"
+#include <std_msgs/Float32MultiArray.h>
 
 using namespace std;
 
@@ -24,6 +25,8 @@ MechanumSteering::MechanumSteering(ChassisParams &chassisParams, MotorParams &mo
 
   _joySub = _nh.subscribe<sensor_msgs::Joy>("joy", 10, &MechanumSteering::joyCallback, this);
   _velSub = _nh.subscribe<geometry_msgs::Twist>("vel/teleop", 10, &MechanumSteering::velocityCallback, this);
+  _pubRPM = _nh.advertise<std_msgs::Float32MultiArray>("rpm", 1);
+  
   _rpm[0] = 0.0;
   _rpm[1] = 0.0;
   _rpm[2] = 0.0;
@@ -45,6 +48,9 @@ void MechanumSteering::run()
   _lastCmd = ros::Time::now();
   unsigned int cnt;
 
+  std_msgs::Float32MultiArray msgRPM;
+  float rpm[4];
+  
   bool run = true;
   while(run)
   {
@@ -73,6 +79,19 @@ void MechanumSteering::run()
           std::cout << "# Failed to set RPM values for CAN ID" << _mc[i]->getCanId() << std::endl;
         }
       }
+
+      //_mc[0]->waitForSync();
+      //_mc[1]->waitForSync();
+      _mc[0]->getWheelResponse(rpm);
+      _mc[1]->getWheelResponse(&(rpm[2]));
+              
+	   std::vector<float> vRPM;
+	   vRPM.push_back(rpm[_chassisParams.frontLeft.id  * 2 + _chassisParams.frontLeft.channel]);
+	   vRPM.push_back(rpm[_chassisParams.frontRight.id * 2 + _chassisParams.frontRight.channel]);
+	   vRPM.push_back(rpm[_chassisParams.rearLeft.id   * 2 + _chassisParams.rearLeft.channel]);
+	   vRPM.push_back(rpm[_chassisParams.rearRight.id  * 2 + _chassisParams.rearRight.channel]);
+      msgRPM.data = vRPM;
+      _pubRPM.publish(msgRPM);
     }
 
     run = ros::ok();

@@ -98,7 +98,8 @@ private:
   ros::NodeHandle        _nh;
   ros::Subscriber        _joySub;
   ros::Subscriber        _velSub;
-
+  ros::Publisher         _pubRPM;
+  
   ChassisParams          _chassisParams;
   MotorParams*           _motorParams;
   MotorControllerCAN*    _mc[2];
