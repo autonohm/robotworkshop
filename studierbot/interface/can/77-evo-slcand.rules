@@ -1,3 +1,3 @@
 # USBtin module
-ACTION=="add", ENV{SUBSYSTEM}=="tty", GROUP="dialout", MODE="0666", ATTRS{product}=="USBtin", RUN+="/usr/bin/logger [udev] USBtin detected, creating symlink ttyEvoCan ", SYMLINK+="ttyEvoCan"
-ACTION=="remove",  ENV{ID_SERIAL_SHORT}=="A0212656",   RUN+="/usr/bin/pkill slcand"
+ACTION=="add", ENV{SUBSYSTEM}=="tty", GROUP="dialout", MODE="0666", ATTRS{product}=="USBtin", RUN+="/usr/bin/logger [udev] USBtin detected, creating symlink ttyEvoCan ", SYMLINK+="ttyEvoCan", ENV{SYSTEMD_WANTS}="slcand.service"
+#ACTION=="remove",  ENV{ID_SERIAL_SHORT}=="A0212656",   RUN+="/usr/bin/pkill slcand"

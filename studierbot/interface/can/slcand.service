@@ -1,0 +1,10 @@
+[Unit]
+BindsTo=dev-ttyEvoCan.device
+After=dev-ttyEvoCan.device
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/slcand -F -f -s6 -o -c /dev/ttyEvoCan
+ExecStartPost=/bin/ip link set slcan0 up
+User=root
+Group=root
